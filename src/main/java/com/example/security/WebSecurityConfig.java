@@ -48,25 +48,19 @@ public class WebSecurityConfig {
         http.cors().and().csrf().disable().authorizeRequests()
 //                .antMatchers("/api/**").permitAll()
                 .antMatchers("/api/user/login").permitAll()
-                .antMatchers("/api/user/register").permitAll()
+                .antMatchers("/api/user/registration").permitAll()
                 .antMatchers("/**").authenticated()
                 .and()
                 .headers().frameOptions().disable().and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .exceptionHandling()
                 .authenticationEntryPoint(entryPoint); //umesto authenticationEntryPoint
-//                .and()
-//                    .oauth2Login()
-//                    .loginPage("/login")
-//                    .userInfoEndpoint()
-//                    .userService(oauth2UserService);
 
         http.addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
 
     }
-
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)

@@ -3,7 +3,6 @@ package com.example.mapper;
 import com.example.dto.RegistrationUserDTO;
 import com.example.model.User;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper

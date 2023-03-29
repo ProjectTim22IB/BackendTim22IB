@@ -172,11 +172,13 @@ public class User implements UserDetails {
         return authorities;
     }
 
+    @JsonIgnore
     @Override
     public String getPassword() {
         return password;
     }
 
+    @JsonIgnore
     @Override
     public String getUsername() {
         return email;
@@ -185,24 +187,24 @@ public class User implements UserDetails {
     @JsonIgnore
     @Override
     public boolean isAccountNonExpired() {
-        return false;
+        return true;
     }
 
     @JsonIgnore
     @Override
     public boolean isAccountNonLocked() {
-        return false;
+        return true;
     }
 
     @JsonIgnore
     @Override
     public boolean isCredentialsNonExpired() {
-        return false;
+        return true;
     }
 
     @JsonIgnore
     @Override
     public boolean isEnabled() {
-        return false;
+        return true;
     }
 }

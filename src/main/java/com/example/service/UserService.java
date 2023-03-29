@@ -1,13 +1,23 @@
 package com.example.service;
 
+import com.example.dto.LoginDTO;
 import com.example.dto.RegistrationUserDTO;
+import com.example.dto.TokensDTO;
 import com.example.enums.Role;
+import com.example.exceptions.EmailAlreadyExistException;
 import com.example.mapper.RegistrationUserMapper;
 import com.example.model.User;
 import com.example.repository.UserRepository;
+import com.example.security.TokenUtils;
 import com.example.service.interfaces.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +33,14 @@ public class UserService implements IUserService {
     @Lazy
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Lazy
+    @Autowired
+    private TokenUtils tokenUtils;
+
+    @Lazy
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
     @Autowired
     public UserService(UserRepository userRepository) {
@@ -40,13 +58,20 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public User createUser(RegistrationUserDTO userDto) {
-        userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        User user = RegistrationUserMapper.MAPPER.mapToUser(userDto);
-        user.setRole(Role.USER);
-        User savedUser = userRepository.save(user);
+    public User createUser(RegistrationUserDTO userDto) throws EmailAlreadyExistException {
 
-        return savedUser;
+        if(userRepository.findByEmail(userDto.getEmail()).isPresent() == false){
+
+            userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
+            User user = RegistrationUserMapper.MAPPER.mapToUser(userDto);
+            user.setRole(Role.USER);
+            User savedUser = userRepository.save(user);
+
+            return savedUser;
+
+        }else {
+            throw new EmailAlreadyExistException("User already exist");
+        }
     }
 
     @Override
@@ -57,5 +82,17 @@ public class UserService implements IUserService {
         } else {
             return user;
         }
+    }
+
+    @Override
+    public TokensDTO loginUser(LoginDTO login) {
+        User user = getByEmail(login.getEmail()).get();
+        TokensDTO tokens = new TokensDTO();
+        tokens.setAccessToken(this.tokenUtils.generateToken(user));
+        tokens.setRefreshToken(this.tokenUtils.generateRefreshToken(user));
+        Authentication authentication = this.authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(login.getEmail(), login.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        return tokens;
     }
 }

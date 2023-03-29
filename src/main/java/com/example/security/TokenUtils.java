@@ -41,17 +41,17 @@ public class TokenUtils implements Serializable {
 		return getClaimFromToken(token, Claims::getExpiration);
 	}
 
-//	public String getRoleFromToken(String token) {
-//		Map<String, Object> claims;
-//		claims = getAllClaimsFromToken(token);
-//		return (String) claims.get("role");
-//	}
-//
-//	public int getUserIdFromToken(String token) {
-//		Map<String, Object> claims;
-//		claims = getAllClaimsFromToken(token);
-//		return (int) claims.get("id");
-//	}
+	public String getRoleFromToken(String token) {
+		Map<String, Object> claims;
+		claims = getAllClaimsFromToken(token);
+		return (String) claims.get("role");
+	}
+
+	public int getUserIdFromToken(String token) {
+		Map<String, Object> claims;
+		claims = getAllClaimsFromToken(token);
+		return (int) claims.get("id");
+	}
 
 	private Boolean isTokenExpired(String token){
 		final Date expiration = getExpirationDateFromToken(token);
@@ -83,7 +83,6 @@ public class TokenUtils implements Serializable {
 				.setExpiration(new Date(System.currentTimeMillis()+JWT_REFRESH_TOKEN_VALIDITY*1000))
 				.signWith(SignatureAlgorithm.HS512,secret).compact();
 	}
-
 
 	public Boolean validateToken(String token, User userDetails) {
 		final String username = getUsernameFromToken(token);
