@@ -42,4 +42,6 @@ public class UserController {
             return new ResponseEntity<>(new Message("Wrong username or password!"), HttpStatus.BAD_REQUEST);
         }
     }
+
+    
 }
