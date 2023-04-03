@@ -1,8 +1,10 @@
 package com.example.controller;
 
 import com.example.model.Certificate;
+import com.example.rest.Message;
 import com.example.service.interfaces.ICertificateService;
 import com.example.service.interfaces.IUserService;
+import com.nimbusds.oauth2.sdk.util.StringUtils;
 import org.hibernate.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -41,10 +43,21 @@ public class CertificateController {
     @GetMapping(value = "/id", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity<?> checkIfValid(@PathVariable("id") Long id){
+//        if(!StringUtils.isNumeric(id)){
+//            return new ResponseEntity<>(new Message("Id is not numeric"), HttpStatus.NOT_FOUND);
+//        }
         if(!this.certificateService.getCertificate(id).isPresent()){
-            return null;
+            return new ResponseEntity<>(new Message("Certificate does not exist"), HttpStatus.NOT_FOUND);
         }
         boolean isValid = this.certificateService.checkIfValid(id);
-        return null;
+
+        if (isValid) {
+            return new ResponseEntity<>(new Message("Certificate is valid"), HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<>(new Message("Certificate is not valid"), HttpStatus.OK);
+        }
+
+
     }
 }
