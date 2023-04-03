@@ -2,12 +2,18 @@ package com.example.model;
 
 import com.example.enums.CertificateStatus;
 import com.example.enums.CertificateType;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 import java.time.LocalDateTime;
 
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
+@Table(name = "Certificates")
 public class Certificate {
 
     @Id
