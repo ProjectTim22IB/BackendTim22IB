@@ -36,8 +36,7 @@ public class CertificateController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity<?> getAllCertificates() {
-        List<Certificate> certificates = this.certificateService.getAll();
-        return new ResponseEntity<>(certificates, HttpStatus.OK);
+        return new ResponseEntity<>(this.certificateService.getAll(), HttpStatus.OK);
     }
 
     @GetMapping(value = "/id", produces = MediaType.APPLICATION_JSON_VALUE)
