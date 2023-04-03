@@ -28,10 +28,11 @@ public class CertificateController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('USER')")
-    public ResponseEntity<?> getAllPassengers(Pageable page) {
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity<?> getAllCertificates() {
         List<Certificate> certificates = this.certificateService.getAll();
-
         return new ResponseEntity<>(certificates, HttpStatus.OK);
     }
+
+
 }

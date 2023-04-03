@@ -19,13 +19,12 @@ public class Certificate {
     @Id
     private Long id;
     private String serialNumber;
-    private String signatureAlgorithm;
     private String issuer;
     private LocalDateTime validFrom;
     private LocalDateTime validTo;
     private CertificateStatus status;
     private CertificateType certificateType;
-    private String username;
+    private String email;
 
     public Long getId() {
         return id;
@@ -41,14 +40,6 @@ public class Certificate {
 
     public void setSerialNumber(String serialNumber) {
         this.serialNumber = serialNumber;
-    }
-
-    public String getSignatureAlgorithm() {
-        return signatureAlgorithm;
-    }
-
-    public void setSignatureAlgorithm(String signatureAlgorithm) {
-        this.signatureAlgorithm = signatureAlgorithm;
     }
 
     public String getIssuer() {
@@ -91,11 +82,11 @@ public class Certificate {
         this.certificateType = certificateType;
     }
 
-    public String getUsername() {
-        return username;
+    public String getEmail() {
+        return email;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setEmail(String email) {
+        this.email = email;
     }
 }
