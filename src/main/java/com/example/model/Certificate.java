@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 public class Certificate {
 
     @Id
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
     private String serialNumber;
     private String issuerSerialNumber;

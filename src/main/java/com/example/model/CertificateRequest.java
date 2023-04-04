@@ -5,9 +5,7 @@ import com.example.enums.CertificateType;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDate;
 
 @Entity
@@ -17,11 +15,14 @@ import java.time.LocalDate;
 public class CertificateRequest {
 
     @Id
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
     private CertificateType type;
     private String email;
     private String issuerSerialNumber;
     private LocalDate requestDate;
+
+    @Enumerated(EnumType.STRING)
     private CertificateRequestStatus status;
     private String issuerEmail;
     private String reasonOfRejection;

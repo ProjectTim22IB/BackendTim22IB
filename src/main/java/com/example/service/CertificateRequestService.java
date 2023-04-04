@@ -35,7 +35,7 @@ public class CertificateRequestService implements ICertificateRequestService {
 
     @Override
     public void createRequest(RequestCertificateDTO request) {
-        Certificate issuerCertificate = this.certificateRepository.findBySerialNumber(request.getIssuerSerialNumber());
+        Certificate issuerCertificate = this.certificateRepository.findBySerialNumber(request.getIssuerSerialNumber()).get();
         String issuerEmail = issuerCertificate.getEmail();
 
         CertificateRequest certificateRequest = request.parseToRequest(issuerEmail);

@@ -6,9 +6,10 @@ import org.springframework.stereotype.Repository;
 
 import java.lang.annotation.Repeatable;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CertificateRepository extends JpaRepository<Certificate, Long> {
     List<Certificate> findAll();
-    Certificate findBySerialNumber(String SerialNumber);
+    Optional<Certificate> findBySerialNumber(String SerialNumber);
 }

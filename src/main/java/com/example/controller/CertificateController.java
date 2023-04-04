@@ -15,23 +15,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/certificate")
 public class CertificateController {
 
     private final ICertificateService certificateService;
-    private final ICertificateRequestService certificateRequestService;
 
     @Autowired
-    public CertificateController(ICertificateService certificateService, ICertificateRequestService certificateRequestService) {
+    public CertificateController(ICertificateService certificateService) {
         this.certificateService = certificateService;
-        this.certificateRequestService = certificateRequestService;
     }
 
     @GetMapping
@@ -55,10 +50,4 @@ public class CertificateController {
         }
     }
 
-    @PostMapping(value = "/request", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
-    public ResponseEntity<?> requestCertificate(@RequestBody RequestCertificateDTO request){
-        this.certificateRequestService.createRequest(request);
-        return null;
-    }
 }
