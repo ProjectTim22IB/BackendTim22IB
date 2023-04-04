@@ -29,6 +29,16 @@ public class Certificate {
     private CertificateType certificateType;
     private String email;
 
+    public Certificate(String serialNumber, String issuerSerialNumber, LocalDateTime validFrom, LocalDateTime validTo, CertificateStatus status, CertificateType certificateType, String email) {
+        this.serialNumber = serialNumber;
+        this.issuerSerialNumber = issuerSerialNumber;
+        this.validFrom = validFrom;
+        this.validTo = validTo;
+        this.status = status;
+        this.certificateType = certificateType;
+        this.email = email;
+    }
+
     public Long getId() {
         return id;
     }

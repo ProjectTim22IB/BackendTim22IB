@@ -1,24 +1,30 @@
 package com.example.service;
 
 import com.example.dto.RequestCertificateDTO;
+import com.example.enums.CertificateRequestStatus;
 import com.example.enums.CertificateStatus;
 import com.example.model.Certificate;
+import com.example.model.CertificateRequest;
 import com.example.repository.CertificateRepository;
+import com.example.repository.CertificateRequestRepository;
 import com.example.service.interfaces.ICertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 public class CertificateService implements ICertificateService {
 
     private final CertificateRepository certificateRepository;
+    private final CertificateRequestRepository certificateRequestRepository;
 
     @Autowired
-    private CertificateService(CertificateRepository certificateRepository){
+    private CertificateService(CertificateRepository certificateRepository, CertificateRequestRepository certificateRequestRepository){
         this.certificateRepository = certificateRepository;
+        this.certificateRequestRepository = certificateRequestRepository;
     }
 
     public List<Certificate> getAll() {
@@ -33,5 +39,19 @@ public class CertificateService implements ICertificateService {
     @Override
     public boolean checkIfValid(Long id) {
         return getCertificate(id).get().getStatus() != CertificateStatus.VALID;
+    }
+
+    @Override
+    public void createNewCertificate(CertificateRequest request) {
+        Random randomNum = new Random();
+        int serialNumber = randomNum.nextInt(10000);
+        while (this.certificateRepository.findBySerialNumber(String.valueOf(serialNumber)).isPresent()){
+            serialNumber = randomNum.nextInt(10000);
+        }
+        Certificate certificate = request.parseToCertificate(String.valueOf(serialNumber));
+        this.certificateRepository.save(certificate);
+
+        request.setStatus(CertificateRequestStatus.APPROVED);
+        this.certificateRequestRepository.save(request);
     }
 }

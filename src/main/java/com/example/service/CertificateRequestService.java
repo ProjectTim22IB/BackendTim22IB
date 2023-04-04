@@ -20,12 +20,14 @@ public class CertificateRequestService implements ICertificateRequestService {
     private final CertificateRequestRepository certificateRequestRepository;
     private final CertificateRepository certificateRepository;
     private final UserRepository userRepository;
+    private final CertificateService certificateService;
 
     @Autowired
-    private CertificateRequestService(CertificateRequestRepository certificateRequestRepository, CertificateRepository certificateRepository, UserRepository userRepository){
+    private CertificateRequestService(CertificateRequestRepository certificateRequestRepository, CertificateRepository certificateRepository, UserRepository userRepository, CertificateService certificateService){
         this.certificateRequestRepository = certificateRequestRepository;
         this.certificateRepository = certificateRepository;
         this.userRepository = userRepository;
+        this.certificateService = certificateService;
     }
 
     @Override
@@ -44,13 +46,13 @@ public class CertificateRequestService implements ICertificateRequestService {
         User user = this.userRepository.findByEmail(request.getEmail()).get();
 
         if (request.getEmail().equals(issuerEmail)){
-            return;
+            this.certificateService.createNewCertificate(certificateRequest);
         }
         else if (issuerCertificate.getCertificateType() == CertificateType.ROOT){
-            return;
+            this.certificateService.createNewCertificate(certificateRequest);
         }
         else if (user.getRole() == Role.ADMIN) {
-            return;
+            this.certificateService.createNewCertificate(certificateRequest);
         }
     }
 }
