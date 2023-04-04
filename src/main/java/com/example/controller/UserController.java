@@ -34,7 +34,7 @@ public class UserController {
         }
     }
 
-    @PostMapping(value = "/login", consumes = "application/json", produces = "application/json")
+    @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> login(@RequestBody LoginDTO login) {
         try{
             return new ResponseEntity<>(this.userService.loginUser(login), HttpStatus.OK);
@@ -42,4 +42,6 @@ public class UserController {
             return new ResponseEntity<>(new Message("Wrong username or password!"), HttpStatus.BAD_REQUEST);
         }
     }
+
+    
 }

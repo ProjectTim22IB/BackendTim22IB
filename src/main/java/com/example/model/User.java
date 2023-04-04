@@ -18,45 +18,45 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "Userr")
+@Table(name = "Users")
 public class User implements UserDetails {
 
     @Id
-    @Column(name = "Id")
+//    @Column(name = "Id")
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "Name")
+//    @Column(name = "Name")
     private String name;
 
-    @Column(name = "Surname")
+//    @Column(name = "Surname")
     private String surname;
 
-    @Column(name = "PhoneNumber")
+//    @Column(name = "PhoneNumber")
     private String phoneNumber;
 
-    @Column(name = "Email")
+//    @Column(name = "Email")
     private String email;
 
-    @Column(name = "Password")
+//    @Column(name = "Password")
     private String password;
 
-    @Column(name = "ConfromationToken")
+//    @Column(name = "ConfromationToken")
     private String conformationToken;
 
-    @Column(name = "Autentificated")
+//    @Column(name = "Autentificated")
     private boolean autentificated;
 
-    @Column(name = "ResetPasswordToken")
+//    @Column(name = "ResetPasswordToken")
     private String resetPasswordToken;
 
-    @Column(name = "ResetPasswordTokenExpiration")
+//    @Column(name = "ResetPasswordTokenExpiration")
     private LocalDateTime resetPasswordTokenExpiration;
 
-    @Column(name = "PasswordExpiration")
+//    @Column(name = "PasswordExpiration")
     private LocalDateTime passwordExpiration;
 
-    @Column(name = "Role")
+//    @Column(name = "Role")
     @Enumerated(EnumType.STRING)
     private Role role;
 
