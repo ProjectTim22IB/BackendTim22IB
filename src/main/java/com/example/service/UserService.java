@@ -10,6 +10,10 @@ import com.example.model.User;
 import com.example.repository.UserRepository;
 import com.example.security.TokenUtils;
 import com.example.service.interfaces.IUserService;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.asn1.x500.style.BCStrictStyle;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
@@ -94,5 +98,15 @@ public class UserService implements IUserService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         return tokens;
+    }
+
+    @Override
+    public X500Name generateX500Name(User user) {
+        X500NameBuilder builder = new X500NameBuilder(BCStrictStyle.INSTANCE);
+        builder.addRDN(BCStyle.CN, user.getName() + " " + user.getSurname());
+        builder.addRDN(BCStyle.GIVENNAME, user.getName());
+        builder.addRDN(BCStyle.SURNAME, user.getSurname());
+        builder.addRDN(BCStyle.UID, user.getId().toString());
+        return builder.build();
     }
 }

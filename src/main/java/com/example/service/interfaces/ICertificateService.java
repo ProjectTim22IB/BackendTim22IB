@@ -3,7 +3,11 @@ package com.example.service.interfaces;
 import com.example.dto.RequestCertificateDTO;
 import com.example.model.Certificate;
 import com.example.model.CertificateRequest;
+import org.bouncycastle.operator.OperatorCreationException;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,4 +19,6 @@ public interface ICertificateService {
     boolean checkIfValid(Long id);
 
     void createNewCertificate(CertificateRequest request);
+
+    void generateCertificate(Certificate certificate) throws CertificateException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException;
 }
