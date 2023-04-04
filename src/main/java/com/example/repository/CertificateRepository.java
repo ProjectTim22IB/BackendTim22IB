@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface CertificateRepository extends JpaRepository<Certificate, Long> {
     List<Certificate> findAll();
+    Certificate findBySerialNumber(String SerialNumber);
 }

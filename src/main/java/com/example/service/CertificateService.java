@@ -1,5 +1,6 @@
 package com.example.service;
 
+import com.example.dto.RequestCertificateDTO;
 import com.example.enums.CertificateStatus;
 import com.example.model.Certificate;
 import com.example.repository.CertificateRepository;
@@ -13,7 +14,7 @@ import java.util.Optional;
 @Service
 public class CertificateService implements ICertificateService {
 
-    private CertificateRepository certificateRepository;
+    private final CertificateRepository certificateRepository;
 
     @Autowired
     private CertificateService(CertificateRepository certificateRepository){

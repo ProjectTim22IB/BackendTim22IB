@@ -1,5 +1,6 @@
 package com.example.service.interfaces;
 
+import com.example.dto.RequestCertificateDTO;
 import com.example.model.Certificate;
 
 import java.util.List;
@@ -11,4 +12,5 @@ public interface ICertificateService {
     Optional<Certificate> getCertificate(Long id);
 
     boolean checkIfValid(Long id);
+
 }

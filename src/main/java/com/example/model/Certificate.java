@@ -5,24 +5,26 @@ import com.example.enums.CertificateType;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "Certificates")
+@Table(name = "certificates")
 public class Certificate {
 
     @Id
     private Long id;
     private String serialNumber;
-    private String issuer;
+    private String issuerSerialNumber;
     private LocalDateTime validFrom;
     private LocalDateTime validTo;
+
+    @Enumerated(EnumType.STRING)
     private CertificateStatus status;
+
+    @Enumerated(EnumType.STRING)
     private CertificateType certificateType;
     private String email;
 
@@ -42,13 +44,9 @@ public class Certificate {
         this.serialNumber = serialNumber;
     }
 
-    public String getIssuer() {
-        return issuer;
-    }
+    public String getIssuerSerialNumber() { return issuerSerialNumber; }
 
-    public void setIssuer(String issuer) {
-        this.issuer = issuer;
-    }
+    public void setIssuerSerialNumber(String issuerSerialNumber) { this.issuerSerialNumber = issuerSerialNumber; }
 
     public LocalDateTime getValidFrom() {
         return validFrom;
