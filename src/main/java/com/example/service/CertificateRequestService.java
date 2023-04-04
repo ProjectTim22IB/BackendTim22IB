@@ -1,6 +1,8 @@
 package com.example.service;
 
+import com.example.dto.ApprovalOfRequestDTO;
 import com.example.dto.RequestCertificateDTO;
+import com.example.enums.CertificateRequestStatus;
 import com.example.enums.CertificateType;
 import com.example.enums.Role;
 import com.example.mapper.CertificateMapper;
@@ -70,5 +72,30 @@ public class CertificateRequestService implements ICertificateRequestService {
             }
         }
         return allRequestsForUser;
+    }
+
+    @Override
+    public List<CertificateRequest> getAllRequestsForIssuer(Long id) {
+        User user = this.userRepository.getReferenceById(id);
+        List<CertificateRequest> allRequests = this.certificateRequestRepository.findAll();
+        List<CertificateRequest> allRequestsForIssuer = new ArrayList<>();
+        for(CertificateRequest c : allRequests){
+            if(c.getIssuerEmail().equals(user.getEmail()) && c.getStatus() == CertificateRequestStatus.PENDING){
+                allRequestsForIssuer.add(c);
+            }
+        }
+        return allRequestsForIssuer;
+    }
+
+    @Override
+    public void acceptRequest(Long requestId, ApprovalOfRequestDTO approvalOfRequest) {
+        CertificateRequest certificateRequest = this.certificateRequestRepository.findById(requestId).get();
+        if(!approvalOfRequest.isApproved()){
+            certificateRequest.setStatus(CertificateRequestStatus.REJECTED);
+            certificateRequest.setReasonOfRejection(approvalOfRequest.getReasonOfRejection());
+            this.certificateRequestRepository.save(certificateRequest);
+        } else {
+            this.certificateService.createNewCertificate(certificateRequest);
+        }
     }
 }

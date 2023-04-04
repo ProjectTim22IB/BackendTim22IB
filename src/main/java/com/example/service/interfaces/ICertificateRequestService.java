@@ -1,5 +1,6 @@
 package com.example.service.interfaces;
 
+import com.example.dto.ApprovalOfRequestDTO;
 import com.example.dto.RequestCertificateDTO;
 import com.example.model.CertificateRequest;
 
@@ -10,4 +11,8 @@ public interface ICertificateRequestService {
     void createRequest(RequestCertificateDTO request);
 
     List<CertificateRequest> getAllRequestsForUser(Long id);
+
+    List<CertificateRequest> getAllRequestsForIssuer(Long id);
+
+    void acceptRequest(Long requestId, ApprovalOfRequestDTO approvalOfRequest);
 }
