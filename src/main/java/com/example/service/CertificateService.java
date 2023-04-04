@@ -10,6 +10,7 @@ import com.example.repository.CertificateRequestRepository;
 import com.example.repository.UserRepository;
 import com.example.service.interfaces.ICertificateService;
 import com.example.service.interfaces.IUserService;
+import com.example.utils.KeyStoreUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -37,6 +38,7 @@ public class CertificateService implements ICertificateService {
     private final CertificateRequestRepository certificateRequestRepository;
     private final UserRepository userRepository;
     private final IUserService userService;
+    private final KeyStoreUtils keyStoreUtils;
 
     @Autowired
     private CertificateService(CertificateRepository certificateRepository, CertificateRequestRepository certificateRequestRepository, UserRepository userRepository, IUserService userService){
@@ -83,7 +85,8 @@ public class CertificateService implements ICertificateService {
         JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
         builder = builder.setProvider("BC");
 
-        ContentSigner contentSigner = builder.build(generateKeyPair().getPrivate());
+        PrivateKey privateKey = generateKeyPair().getPrivate()
+        ContentSigner contentSigner = builder.build(privateKey);
 
         X509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(this.userService.generateX500Name(this.userRepository.findByEmail(certificateRequest.getIssuerEmail()).get()), new BigInteger(certificate.getSerialNumber()), Date.from(certificate.getValidFrom().atZone(ZoneId.systemDefault()).toInstant()), Date.from(certificate.getValidTo().atZone(ZoneId.systemDefault()).toInstant()), this.userService.generateX500Name(this.userRepository.findByEmail(certificateRequest.getEmail()).get()), generateKeyPair().getPublic());
 
@@ -91,6 +94,8 @@ public class CertificateService implements ICertificateService {
         JcaX509CertificateConverter certificateConverter = new JcaX509CertificateConverter();
         certificateConverter = certificateConverter.setProvider("BC");
         X509Certificate generatedCertificate = certificateConverter.getCertificate(certificateHolder);
+
+        keyStoreUtils.saveNewCertificate(generatedCertificate, certificate,privateKey);
     }
 
     @Override

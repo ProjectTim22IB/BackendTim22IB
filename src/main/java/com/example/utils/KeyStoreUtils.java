@@ -1,4 +1,4 @@
-package com.example;
+package com.example.utils;
 
 import com.example.model.Certificate;
 
@@ -10,7 +10,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 public class KeyStoreUtils {
-    private KeyStore keyStore;
+    private final KeyStore keyStore;
 
     public KeyStoreUtils() throws KeyStoreException, NoSuchProviderException {
         this.keyStore = KeyStore.getInstance("JKS", "SUN");
