@@ -14,6 +14,9 @@ import com.example.service.interfaces.ICertificateRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class CertificateRequestService implements ICertificateRequestService {
 
@@ -54,5 +57,18 @@ public class CertificateRequestService implements ICertificateRequestService {
         else if (user.getRole() == Role.ADMIN) {
             this.certificateService.createNewCertificate(certificateRequest);
         }
+    }
+
+    @Override
+    public List<CertificateRequest> getAllRequestsForUser(Long id) {
+        User user = this.userRepository.getReferenceById(id);
+        List<CertificateRequest> allRequests = this.certificateRequestRepository.findAll();
+        List<CertificateRequest> allRequestsForUser = new ArrayList<CertificateRequest>();
+        for(CertificateRequest c : allRequests){
+            if(c.getEmail().equals(user.getEmail())){
+                allRequestsForUser.add(c);
+            }
+        }
+        return allRequestsForUser;
     }
 }

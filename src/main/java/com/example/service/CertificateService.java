@@ -38,7 +38,11 @@ public class CertificateService implements ICertificateService {
 
     @Override
     public boolean checkIfValid(Long id) {
-        return getCertificate(id).get().getStatus() != CertificateStatus.VALID;
+        boolean isValid = false;
+        if(getCertificate(id).get().getStatus() == CertificateStatus.VALID){
+            isValid = true;
+        }
+        return isValid;
     }
 
     @Override

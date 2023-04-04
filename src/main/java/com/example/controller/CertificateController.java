@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.dto.RequestCertificateDTO;
 import com.example.model.Certificate;
+import com.example.repository.CertificateRepository;
 import com.example.rest.Message;
 import com.example.service.interfaces.ICertificateRequestService;
 import com.example.service.interfaces.ICertificateService;
@@ -23,10 +24,12 @@ import org.springframework.web.bind.annotation.*;
 public class CertificateController {
 
     private final ICertificateService certificateService;
+    private final CertificateRepository certificateRepository;
 
     @Autowired
-    public CertificateController(ICertificateService certificateService) {
+    public CertificateController(ICertificateService certificateService, CertificateRepository certificateRepository) {
         this.certificateService = certificateService;
+        this.certificateRepository = certificateRepository;
     }
 
     @GetMapping
@@ -35,18 +38,18 @@ public class CertificateController {
         return new ResponseEntity<>(this.certificateService.getAll(), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/valid/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity<?> checkIfValid(@PathVariable("id") Long id){
-        if(!this.certificateService.getCertificate(id).isPresent()){
-            return new ResponseEntity<>(new Message("Certificate does not exist"), HttpStatus.NOT_FOUND);
+        if(!this.certificateRepository.findById(id).isPresent()){
+            return new ResponseEntity<>(new Message("Certificate does not exist!"), HttpStatus.NOT_FOUND);
         }
         boolean isValid = this.certificateService.checkIfValid(id);
         if (isValid) {
-            return new ResponseEntity<>(new Message("Certificate is valid"), HttpStatus.OK);
+            return new ResponseEntity<>(new Message("Certificate is valid!"), HttpStatus.OK);
         }
         else {
-            return new ResponseEntity<>(new Message("Certificate is not valid"), HttpStatus.OK);
+            return new ResponseEntity<>(new Message("Certificate is not valid!"), HttpStatus.OK);
         }
     }
 

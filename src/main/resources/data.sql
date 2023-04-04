@@ -4,4 +4,4 @@ insert into users(name, surname, phone_number, email, password, autentificated, 
 insert into users(name, surname, phone_number, email, password, autentificated, role) values ('Jovana', 'Jovanovic', '+386664567', 'jovana.jovanovic@gmail.com', '$2a$12$yl66nfVmBAs/BxioF.fqW.vjSEDEPFeb8g1p6zF4/5/BonhRJCiv6', true, 'ADMIN')
 
 --certificates
-insert into certificates(serial_number, email) values ('123', 'pera.peric@gmail.com')
+insert into certificates(serial_number, email, status) values ('123', 'pera.peric@gmail.com', 'VALID')
