@@ -1,6 +1,5 @@
 package com.example.service;
 
-import com.example.dto.RequestCertificateDTO;
 import com.example.enums.CertificateRequestStatus;
 import com.example.enums.CertificateStatus;
 import com.example.model.Certificate;
@@ -21,6 +20,7 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -41,11 +41,12 @@ public class CertificateService implements ICertificateService {
     private final KeyStoreUtils keyStoreUtils;
 
     @Autowired
-    private CertificateService(CertificateRepository certificateRepository, CertificateRequestRepository certificateRequestRepository, UserRepository userRepository, IUserService userService){
+    private CertificateService(CertificateRepository certificateRepository, CertificateRequestRepository certificateRequestRepository, UserRepository userRepository, IUserService userService, KeyStoreUtils keyStoreUtils){
         this.certificateRepository = certificateRepository;
         this.certificateRequestRepository = certificateRequestRepository;
         this.userRepository = userRepository;
         this.userService = userService;
+        this.keyStoreUtils = keyStoreUtils;
     }
 
     public List<Certificate> getAll() {
@@ -81,11 +82,11 @@ public class CertificateService implements ICertificateService {
     }
 
     @Override
-    public void generateCertificate(CertificateRequest certificateRequest, Certificate certificate) throws CertificateException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
+    public void generateCertificate(CertificateRequest certificateRequest, Certificate certificate) throws CertificateException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, IOException, KeyStoreException {
         JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
         builder = builder.setProvider("BC");
 
-        PrivateKey privateKey = generateKeyPair().getPrivate()
+        PrivateKey privateKey = generateKeyPair().getPrivate();
         ContentSigner contentSigner = builder.build(privateKey);
 
         X509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(this.userService.generateX500Name(this.userRepository.findByEmail(certificateRequest.getIssuerEmail()).get()), new BigInteger(certificate.getSerialNumber()), Date.from(certificate.getValidFrom().atZone(ZoneId.systemDefault()).toInstant()), Date.from(certificate.getValidTo().atZone(ZoneId.systemDefault()).toInstant()), this.userService.generateX500Name(this.userRepository.findByEmail(certificateRequest.getEmail()).get()), generateKeyPair().getPublic());

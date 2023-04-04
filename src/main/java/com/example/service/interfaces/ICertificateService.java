@@ -5,7 +5,9 @@ import com.example.model.Certificate;
 import com.example.model.CertificateRequest;
 import org.bouncycastle.operator.OperatorCreationException;
 
+import java.io.IOException;
 import java.security.KeyPair;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.cert.CertificateException;
@@ -21,7 +23,7 @@ public interface ICertificateService {
 
     void createNewCertificate(CertificateRequest request);
 
-    void generateCertificate(CertificateRequest certificateRequest, Certificate certificate) throws CertificateException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException;
+    void generateCertificate(CertificateRequest certificateRequest, Certificate certificate) throws CertificateException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, IOException, KeyStoreException;
 
     KeyPair generateKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException;
 }
