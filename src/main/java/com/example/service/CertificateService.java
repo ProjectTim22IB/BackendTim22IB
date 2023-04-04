@@ -9,6 +9,7 @@ import com.example.repository.CertificateRepository;
 import com.example.repository.CertificateRequestRepository;
 import com.example.repository.UserRepository;
 import com.example.service.interfaces.ICertificateService;
+import com.example.service.interfaces.IUserService;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -19,9 +20,12 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -32,12 +36,14 @@ public class CertificateService implements ICertificateService {
     private final CertificateRepository certificateRepository;
     private final CertificateRequestRepository certificateRequestRepository;
     private final UserRepository userRepository;
+    private final IUserService userService;
 
     @Autowired
-    private CertificateService(CertificateRepository certificateRepository, CertificateRequestRepository certificateRequestRepository, UserRepository userRepository){
+    private CertificateService(CertificateRepository certificateRepository, CertificateRequestRepository certificateRequestRepository, UserRepository userRepository, IUserService userService){
         this.certificateRepository = certificateRepository;
         this.certificateRequestRepository = certificateRequestRepository;
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     public List<Certificate> getAll() {
@@ -73,22 +79,26 @@ public class CertificateService implements ICertificateService {
     }
 
     @Override
-    public void generateCertificate(Certificate certificate) throws CertificateException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
+    public void generateCertificate(CertificateRequest certificateRequest, Certificate certificate) throws CertificateException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
         JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
         builder = builder.setProvider("BC");
 
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG", "SUN");
-        keyPairGenerator.initialize(2048, secureRandom);
-        KeyPair issuerPrivateKey = keyPairGenerator.generateKeyPair();
-        ContentSigner contentSigner = builder.build(issuerPrivateKey.getPrivate());
+        ContentSigner contentSigner = builder.build(generateKeyPair().getPrivate());
 
-        X509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(this.userRepository.findByEmail(certificate.getIssuerSerialNumber()));
+        X509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(this.userService.generateX500Name(this.userRepository.findByEmail(certificateRequest.getIssuerEmail()).get()), new BigInteger(certificate.getSerialNumber()), Date.from(certificate.getValidFrom().atZone(ZoneId.systemDefault()).toInstant()), Date.from(certificate.getValidTo().atZone(ZoneId.systemDefault()).toInstant()), this.userService.generateX500Name(this.userRepository.findByEmail(certificateRequest.getEmail()).get()), generateKeyPair().getPublic());
 
         X509CertificateHolder certificateHolder = certificateBuilder.build(contentSigner);
         JcaX509CertificateConverter certificateConverter = new JcaX509CertificateConverter();
         certificateConverter = certificateConverter.setProvider("BC");
         X509Certificate generatedCertificate = certificateConverter.getCertificate(certificateHolder);
+    }
+
+    @Override
+    public KeyPair generateKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+        SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG", "SUN");
+        keyPairGenerator.initialize(2048, secureRandom);
+        return keyPairGenerator.generateKeyPair();
     }
 
 
