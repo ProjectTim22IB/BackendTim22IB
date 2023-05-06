@@ -38,13 +38,13 @@ public class CertificateController {
         return new ResponseEntity<>(this.certificateService.getAll(), HttpStatus.OK);
     }
 
-    @GetMapping(value = "/valid/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/valid/{serialNumber}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
-    public ResponseEntity<?> checkIfValid(@PathVariable("id") Long id){
-        if(!this.certificateRepository.findById(id).isPresent()){
+    public ResponseEntity<?> checkIfValid(@PathVariable("serialNumber") String serialNumber){
+        if(!this.certificateRepository.findBySerialNumber(serialNumber).isPresent()){
             return new ResponseEntity<>(new Message("Certificate does not exist!"), HttpStatus.NOT_FOUND);
         }
-        boolean isValid = this.certificateService.checkIfValid(id);
+        boolean isValid = this.certificateService.checkIfValid(serialNumber);
         if (isValid) {
             return new ResponseEntity<>(new Message("Certificate is valid!"), HttpStatus.OK);
         }

@@ -59,9 +59,14 @@ public class CertificateService implements ICertificateService {
     }
 
     @Override
-    public boolean checkIfValid(Long id) {
+    public Optional<Certificate> getCertificateBySerialNumber(String serialNumber) {
+        return this.certificateRepository.findBySerialNumber(serialNumber);
+    }
+
+    @Override
+    public boolean checkIfValid(String serialNumber) {
         boolean isValid = false;
-        if(getCertificate(id).get().getStatus() == CertificateStatus.VALID){
+        if(getCertificateBySerialNumber(serialNumber).get().getStatus() == CertificateStatus.VALID){
             isValid = true;
         }
         return isValid;

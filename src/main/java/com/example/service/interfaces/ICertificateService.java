@@ -19,7 +19,9 @@ public interface ICertificateService {
 
     Optional<Certificate> getCertificate(Long id);
 
-    boolean checkIfValid(Long id);
+    Optional<Certificate> getCertificateBySerialNumber(String serialNumber);
+
+    boolean checkIfValid(String serialNumber);
 
     void createNewCertificate(CertificateRequest request);
 
