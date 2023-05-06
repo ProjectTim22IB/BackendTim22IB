@@ -3,6 +3,7 @@ package com.example.controller;
 import com.example.dto.ApprovalOfRequestDTO;
 import com.example.dto.RequestCertificateDTO;
 import com.example.enums.CertificateRequestStatus;
+import com.example.enums.CertificateType;
 import com.example.model.Certificate;
 import com.example.model.CertificateRequest;
 import com.example.repository.CertificateRepository;
@@ -41,7 +42,11 @@ public class CertificateRequestController {
     public ResponseEntity<?> requestCertificate(@RequestBody RequestCertificateDTO request){
 
         if (!this.certificateRepository.findBySerialNumber(request.getIssuerSerialNumber()).isPresent()){
-            return new ResponseEntity<>(new Message("Can't create request because issuer certificate doesn't exists!"), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new Message("Can't create request because issuer's certificate doesn't exists!"), HttpStatus.NOT_FOUND);
+        }
+
+        if(this.certificateRepository.findBySerialNumber(request.getIssuerSerialNumber()).get().getCertificateType() == CertificateType.END){
+            return new ResponseEntity<>(new Message("Can't create request because issuer's certificate type is end!"), HttpStatus.NOT_FOUND);
         }
 
         this.certificateRequestService.createRequest(request);
@@ -82,15 +87,15 @@ public class CertificateRequestController {
         }
         CertificateRequest certificateRequest = this.certificateRequestRepository.findById(requestId).get();
         if(!certificateRequest.getIssuerEmail().equals(approvalOfRequest.getIssuerEmail())){
-            return new ResponseEntity<>(new Message("Can't approve/reject request for certificate for which you're not issuer!"), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new Message("Can't accept/reject certificate request for that you're not issuer!"), HttpStatus.NOT_FOUND);
         }
         if(certificateRequest.getStatus() == CertificateRequestStatus.APPROVED || certificateRequest.getStatus() == CertificateRequestStatus.REJECTED){
-            return new ResponseEntity<>(new Message("Can't approve/reject request which is already approve/reject!"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new Message("Can't accept/reject request that is already approved/rejected!"), HttpStatus.BAD_REQUEST);
         }
         this.certificateRequestService.acceptRequest(requestId, approvalOfRequest);
         if(!approvalOfRequest.isApproved()){
             return new ResponseEntity<>(new Message("Successfully rejected the request!"), HttpStatus.OK);
         }
-        return new ResponseEntity<>(new Message("Successfully approve the request and create new certificate!"), HttpStatus.OK);
+        return new ResponseEntity<>(new Message("Successfully accepted the request and create new certificate!"), HttpStatus.OK);
     }
 }
