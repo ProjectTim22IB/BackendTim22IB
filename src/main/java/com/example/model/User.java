@@ -58,8 +58,8 @@ public class User implements UserDetails {
     private Role role;
 
 //    @Column(name = "OldPasswords")
-//    @ElementCollection
-//    private List<String> oldPasswords;
+    @ElementCollection
+    private List<String> oldPasswords;
 
     public Long getId() {
         return id;
@@ -137,13 +137,13 @@ public class User implements UserDetails {
         this.passwordExpiration = passwordExpiration;
     }
 
-//    public List<String> getOldPasswords() {
-//        return oldPasswords;
-//    }
-//
-//    public void setOldPasswords(List<String> oldPasswords) {
-//        this.oldPasswords = oldPasswords;
-//    }
+    public List<String> getOldPasswords() {
+        return oldPasswords;
+    }
+
+    public void setOldPasswords(List<String> oldPasswords) {
+        this.oldPasswords = oldPasswords;
+    }
 
     public Role getRole() {
         return role;

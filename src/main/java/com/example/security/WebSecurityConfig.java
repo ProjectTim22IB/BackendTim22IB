@@ -53,6 +53,7 @@ public class WebSecurityConfig {
                 .antMatchers("/api/user/activate/*").permitAll()
                 .antMatchers("/api/user/resetPasswordByEmail").permitAll()
                 .antMatchers("/api/user/resetPasswordBySMS").permitAll()
+                .antMatchers("/api/user/*/resetPassword").permitAll()
                 .antMatchers("/**").authenticated()
                 .and()
                 .headers().frameOptions().disable().and()

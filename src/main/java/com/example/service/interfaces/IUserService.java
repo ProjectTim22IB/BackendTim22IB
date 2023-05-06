@@ -2,6 +2,7 @@ package com.example.service.interfaces;
 
 import com.example.dto.LoginDTO;
 import com.example.dto.RegistrationUserDTO;
+import com.example.dto.ResetPasswordDTO;
 import com.example.dto.TokensDTO;
 import com.example.exceptions.EmailAlreadyExistException;
 import com.example.exceptions.UserNotFoundException;
@@ -29,5 +30,7 @@ public interface IUserService extends UserDetailsService {
 
     void resetPasswordBySMS(String id) throws UserNotFoundException, MessagingException, UnsupportedEncodingException;
 
-    TokensDTO loginUser(LoginDTO login);
+    TokensDTO loginUser(LoginDTO login) throws Exception;
+
+    void changePasswordWithResetToken(String id, ResetPasswordDTO request) throws Exception;
 }

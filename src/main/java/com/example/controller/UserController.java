@@ -3,6 +3,7 @@ package com.example.controller;
 import com.example.dto.LoginDTO;
 import com.example.dto.RegistrationUserDTO;
 import com.example.dto.RequestResetPasswordDTO;
+import com.example.dto.ResetPasswordDTO;
 import com.example.exceptions.*;
 import com.example.model.User;
 import com.example.rest.Message;
@@ -106,30 +107,15 @@ public class UserController {
         }
     }
 
-//    @PostMapping("/reset-password")
-//    public String resetPassword(@RequestParam("phone") String phoneNumber) {
-//        // Generate reset password code
-//        String resetCode = "123456";
-//
-//        twilioService.sendResetPasswordCode(phoneNumber, resetCode);
-//
-//        return "Reset code sent to " + phoneNumber;
-//    }
-
-//    @PutMapping (value = "/{id}/resetPasswordEmail", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity<?> changePasswordWithResetCode(@PathVariable("id") String id, @RequestBody RequestUserResetPasswordDTO requestUserResetPasswordDTO) {
-//        User user = userService.getUser(id).get();
-//        if (user.getResetPasswordToken() == null || user.getResetPasswordTokenExpiration().isBefore(LocalDateTime.now()) || !user.getResetPasswordToken().equals(requestUserResetPasswordDTO.getCode())) {
-//            return new ResponseEntity<>("Code is expired or not correct!", HttpStatus.BAD_REQUEST);
-//        }
-//
-//        user.setPassword(passwordEncoder.encode(requestUserResetPasswordDTO.getNewPassword()));
-//        user.setResetPasswordToken(null);
-//        user.setResetPasswordTokenExpiration(null);
-//        userService.add(user);
-//
-//        return new ResponseEntity<>("Password successfully changed!", HttpStatus.NO_CONTENT);
-//    }
-
-    
+    @PutMapping (value = "/{id}/resetPassword", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> changePasswordWithResetCode(@PathVariable("id") String id, @RequestBody ResetPasswordDTO request) {
+        try{
+            this.userService.changePasswordWithResetToken(id, request);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (MessagingException | UnsupportedEncodingException | UserNotFoundException e) {
+            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
+    }
 }

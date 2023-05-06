@@ -2,6 +2,7 @@ package com.example.service;
 
 import com.example.dto.LoginDTO;
 import com.example.dto.RegistrationUserDTO;
+import com.example.dto.ResetPasswordDTO;
 import com.example.dto.TokensDTO;
 import com.example.enums.Role;
 import com.example.exceptions.EmailAlreadyExistException;
@@ -17,6 +18,8 @@ import com.example.service.interfaces.ITwilioService;
 import com.example.service.interfaces.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -134,8 +137,11 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public TokensDTO loginUser(LoginDTO login) {
+    public TokensDTO loginUser(LoginDTO login) throws Exception {
         User user = getByEmail(login.getEmail()).get();
+        if(user.isAutentificated() == false){
+            throw new Exception();
+        }
         TokensDTO tokens = new TokensDTO();
         tokens.setAccessToken(this.tokenUtils.generateToken(user));
         tokens.setRefreshToken(this.tokenUtils.generateRefreshToken(user));
@@ -170,6 +176,24 @@ public class UserService implements IUserService {
         user.setResetPasswordTokenExpiration(LocalDateTime.now().plusMinutes(10));
 
         twilioService.sendResetPasswordCode(toPhoneNumber, token);
+        this.userRepository.save(user);
+    }
+
+    public void changePasswordWithResetToken(String id, ResetPasswordDTO request) throws Exception {
+        User user = this.getUser(id).get();
+
+        if(!request.getNewPassword().equals(request.getRepeateNewPassword())){
+            throw new Exception();
+        }
+
+        if (user.getResetPasswordToken() == null || user.getResetPasswordTokenExpiration().isBefore(LocalDateTime.now()) || !user.getResetPasswordToken().equals(request.getCode())) {
+            throw new Exception();
+        }
+
+        user.getOldPasswords().add(user.getPassword());
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setResetPasswordToken(null);
+        user.setResetPasswordTokenExpiration(null);
         this.userRepository.save(user);
     }
 }
