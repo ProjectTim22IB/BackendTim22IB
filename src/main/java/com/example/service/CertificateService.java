@@ -84,6 +84,7 @@ public class CertificateService implements ICertificateService {
     }
 
     @Override
+<<<<<<< Updated upstream
     public void generateCertificate(CertificateRequest certificateRequest, Certificate certificate) throws CertificateException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, IOException, KeyStoreException {
         JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
         builder = builder.setProvider("BC");
@@ -136,4 +137,11 @@ public class CertificateService implements ICertificateService {
     }
 
 
+=======
+    public void downloadCertificate(String serialNumber) {
+        //Certificate certificate = getCertificateBySerialNumber(serialNumber).get();
+
+    }
+
+>>>>>>> Stashed changes
 }

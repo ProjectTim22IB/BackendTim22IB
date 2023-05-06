@@ -15,6 +15,7 @@ import org.hibernate.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -58,6 +59,7 @@ public class CertificateController {
         }
     }
 
+<<<<<<< Updated upstream
     @PutMapping(value = "withdraw/{serialNumber}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity<?> withdrawCertificate(@PathVariable("serialNumber") String serialNumber, @RequestBody CertificateWithdrawalDTO withdrawalDTO){
@@ -71,4 +73,21 @@ public class CertificateController {
         return new ResponseEntity<>(new Message("Successfully withdrawn certificate!"), HttpStatus.OK);
     }
 
+=======
+    @PutMapping(value = "download/{serialNumber}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity<?> downloadCertificate(@PathVariable("serialNumber") String serialNumber){
+        if(!this.certificateRepository.findBySerialNumber(serialNumber).isPresent()){
+            return new ResponseEntity<>(new Message("Certificate does not exist!"), HttpStatus.NOT_FOUND);
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDispositionFormData("attachment", serialNumber + ".crt");
+
+        //X509Certificate certificate = cer.readCertificate(serialNumber);
+        //return new ResponseEntity<>(certificate.getEncoded(), headers, HttpStatus.OK);
+        return new ResponseEntity<>(new Message("Successfully downloaded certificate!"), HttpStatus.OK);
+
+    }
+>>>>>>> Stashed changes
 }
