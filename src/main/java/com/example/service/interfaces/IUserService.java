@@ -4,6 +4,7 @@ import com.example.dto.LoginDTO;
 import com.example.dto.RegistrationUserDTO;
 import com.example.dto.TokensDTO;
 import com.example.exceptions.EmailAlreadyExistException;
+import com.example.exceptions.UserNotFoundException;
 import com.example.model.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,11 +19,15 @@ public interface IUserService extends UserDetailsService {
 
     Optional<User> getByEmail(String email);
 
-    User createUser(RegistrationUserDTO userDto) throws EmailAlreadyExistException, MessagingException, UnsupportedEncodingException;
+    Optional<User> getByPhoneNumber(String phoneNumber);
+
+    User createUserByEmail(RegistrationUserDTO userDto) throws EmailAlreadyExistException, MessagingException, UnsupportedEncodingException;
+
+    User createUserBySMS(RegistrationUserDTO userDto) throws EmailAlreadyExistException, MessagingException, UnsupportedEncodingException;
+
+    void resetPasswordByEmail(String email) throws MessagingException, UnsupportedEncodingException, UserNotFoundException;
+
+    void resetPasswordBySMS(String id) throws UserNotFoundException, MessagingException, UnsupportedEncodingException;
 
     TokensDTO loginUser(LoginDTO login);
-
-    void resetPasswordByEmail(String id) throws MessagingException, UnsupportedEncodingException;
-
-    void resetPasswordBySMS(String id);
 }

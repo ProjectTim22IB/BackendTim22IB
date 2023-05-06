@@ -48,8 +48,11 @@ public class WebSecurityConfig {
         http.cors().and().csrf().disable().authorizeRequests()
 //                .antMatchers("/api/**").permitAll()
                 .antMatchers("/api/user/login").permitAll()
-                .antMatchers("/api/user/registration").permitAll()
-                .antMatchers("/api/user/activate/*").permitAll() //OVO PROVERITI
+                .antMatchers("/api/user/registrationByEmail").permitAll()
+                .antMatchers("/api/user/registrationBySMS").permitAll()
+                .antMatchers("/api/user/activate/*").permitAll()
+                .antMatchers("/api/user/resetPasswordByEmail").permitAll()
+                .antMatchers("/api/user/resetPasswordBySMS").permitAll()
                 .antMatchers("/**").authenticated()
                 .and()
                 .headers().frameOptions().disable().and()

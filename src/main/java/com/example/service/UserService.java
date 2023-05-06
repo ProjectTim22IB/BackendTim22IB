@@ -5,6 +5,7 @@ import com.example.dto.RegistrationUserDTO;
 import com.example.dto.TokensDTO;
 import com.example.enums.Role;
 import com.example.exceptions.EmailAlreadyExistException;
+import com.example.exceptions.UserNotFoundException;
 import com.example.mapper.RegistrationUserMapper;
 import com.example.model.User;
 import com.example.model.UserActivation;
@@ -12,6 +13,7 @@ import com.example.repository.UserActivationRepository;
 import com.example.repository.UserRepository;
 import com.example.security.TokenUtils;
 import com.example.service.interfaces.IMailService;
+import com.example.service.interfaces.ITwilioService;
 import com.example.service.interfaces.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -52,6 +54,10 @@ public class UserService implements IUserService {
     @Autowired
     private IMailService mailService;
 
+    @Lazy
+    @Autowired
+    private ITwilioService twilioService;
+
     @Autowired
     public UserService(UserRepository userRepository, UserActivationRepository userActivationRepository) {
         this.userRepository = userRepository;
@@ -69,9 +75,14 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public User createUser(RegistrationUserDTO userDto) throws EmailAlreadyExistException, MessagingException, UnsupportedEncodingException {
+    public Optional<User> getByPhoneNumber(String phoneNumber){
+        return this.userRepository.findByPhoneNumber(phoneNumber);
+    }
 
-        if(userRepository.findByEmail(userDto.getEmail()).isPresent() == false){
+    @Override
+    public User createUserByEmail(RegistrationUserDTO userDto) throws EmailAlreadyExistException, MessagingException, UnsupportedEncodingException {
+
+        if(userRepository.findByEmail(userDto.getEmail()).isPresent() == false && userRepository.findByPhoneNumber(userDto.getPhoneNumber()).isPresent() == false){
 
             userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
             User user = RegistrationUserMapper.MAPPER.mapToUser(userDto);
@@ -82,6 +93,28 @@ public class UserService implements IUserService {
             this.userActivationRepository.save(userActivation);
 
             mailService.sendActivationEmail("filipvuksan.iphone@gmail.com", userActivation);
+
+            return savedUser;
+
+        }else {
+            throw new EmailAlreadyExistException("User already exist");
+        }
+    }
+
+    @Override
+    public User createUserBySMS(RegistrationUserDTO userDto) throws EmailAlreadyExistException, MessagingException, UnsupportedEncodingException {
+
+        if(userRepository.findByEmail(userDto.getEmail()).isPresent() == false && userRepository.findByPhoneNumber(userDto.getPhoneNumber()).isPresent() == false){
+
+            userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
+            User user = RegistrationUserMapper.MAPPER.mapToUser(userDto);
+
+            user.setRole(Role.USER);
+            User savedUser = userRepository.save(user);
+            UserActivation userActivation = new UserActivation(savedUser);
+            this.userActivationRepository.save(userActivation);
+
+            twilioService.sendActivationSMS(userDto.getPhoneNumber(), userActivation);
 
             return savedUser;
 
@@ -113,34 +146,30 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public void resetPasswordByEmail(String id) {
-        try {
-            User user = this.getUser(id).get();
+    public void resetPasswordByEmail(String email) throws UserNotFoundException, MessagingException, UnsupportedEncodingException {
+            if(this.userRepository.findByEmail(email).isPresent() == false){
+                throw new UserNotFoundException("User not found");
+            }
+            User user = this.getByEmail(email).get();
             String token = String.valueOf(new Random().nextInt(900000) + 100000);
             user.setResetPasswordToken(token);
             user.setResetPasswordTokenExpiration(LocalDateTime.now().plusMinutes(10));
 
             mailService.sendMail("filipvuksan.iphone@gmail.com", token);
             this.userRepository.save(user);
-
-        } catch (MessagingException | UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
-    public void resetPasswordBySMS(String id) {
-        try {
-            User user = this.getUser(id).get();
-            String token = String.valueOf(new Random().nextInt(900000) + 100000);
-            user.setResetPasswordToken(token);
-            user.setResetPasswordTokenExpiration(LocalDateTime.now().plusMinutes(10));
-
-            mailService.sendMail("filipvuksan.iphone@gmail.com", token);
-            this.userRepository.save(user);
-
-        } catch (MessagingException | UnsupportedEncodingException e) {
-            e.printStackTrace();
+    public void resetPasswordBySMS(String toPhoneNumber) throws UserNotFoundException {
+        if(this.userRepository.findByPhoneNumber(toPhoneNumber).isPresent() == false){
+            throw new UserNotFoundException("User not found");
         }
+        User user = this.getByPhoneNumber(toPhoneNumber).get();
+        String token = String.valueOf(new Random().nextInt(900000) + 100000);
+        user.setResetPasswordToken(token);
+        user.setResetPasswordTokenExpiration(LocalDateTime.now().plusMinutes(10));
+
+        twilioService.sendResetPasswordCode(toPhoneNumber, token);
+        this.userRepository.save(user);
     }
 }
