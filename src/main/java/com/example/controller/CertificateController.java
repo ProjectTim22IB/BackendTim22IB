@@ -86,8 +86,6 @@ public class CertificateController {
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         headers.setContentDispositionFormData("attachment", serialNumber + ".crt");
 
-        //X509Certificate certificate = cer.readCertificate(serialNumber);
-        //return new ResponseEntity<>(certificate.getEncoded(), headers, HttpStatus.OK);
         return new ResponseEntity<>(new Message("Successfully downloaded certificate!"), HttpStatus.OK);
 
     }
