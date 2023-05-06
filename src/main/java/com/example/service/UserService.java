@@ -78,7 +78,8 @@ public class UserService implements IUserService {
 
             user.setRole(Role.USER);
             User savedUser = userRepository.save(user);
-            UserActivation userActivation = userActivationRepository.save(new UserActivation(savedUser));
+            UserActivation userActivation = new UserActivation(savedUser);
+            this.userActivationRepository.save(userActivation);
 
             mailService.sendActivationEmail("filipvuksan.iphone@gmail.com", userActivation);
 

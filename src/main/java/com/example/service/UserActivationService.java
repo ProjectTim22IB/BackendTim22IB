@@ -3,6 +3,7 @@ package com.example.service;
 import com.example.exceptions.ActivationExpiredException;
 import com.example.exceptions.EmailAlreadyExistException;
 import com.example.exceptions.InvalidUserActivation;
+import com.example.exceptions.UserAlreadyAutentificatedException;
 import com.example.model.User;
 import com.example.model.UserActivation;
 import com.example.repository.UserActivationRepository;
@@ -40,11 +41,15 @@ public class UserActivationService implements IUserActivationService {
     }
 
     @Override
-    public void activate(String id) throws ActivationExpiredException, InvalidUserActivation {
-        System.out.println("AASDD");
-        if(this.userActivationRepository.findById(id).isPresent()==true){
-            UserActivation userActivation = userActivationRepository.findById(id).get();
-            System.out.println("AASDD");
+    public void activate(String id) throws ActivationExpiredException, InvalidUserActivation, UserAlreadyAutentificatedException {
+
+        if(this.getUserActivation(id).isPresent()==true){
+            UserActivation userActivation = this.getUserActivation(id).get();
+
+            if(userActivation.getUser().isAutentificated() == true) {
+                throw new UserAlreadyAutentificatedException("User already autentificated");
+            }
+
             if(userActivation.checkIfExpired() == false){
                 User user = this.userRepository.findById(userActivation.getUser().getId()).get();
                 user.setAutentificated(true);
@@ -54,7 +59,7 @@ public class UserActivationService implements IUserActivationService {
                 throw new ActivationExpiredException("Expired activation, try again");
             }
         }else {
-            throw new InvalidUserActivation("Invalid userActivation");
+            throw new InvalidUserActivation("Invalid user activation");
         }
     }
 

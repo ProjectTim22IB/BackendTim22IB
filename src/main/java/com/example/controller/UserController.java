@@ -5,6 +5,7 @@ import com.example.dto.RegistrationUserDTO;
 import com.example.exceptions.ActivationExpiredException;
 import com.example.exceptions.EmailAlreadyExistException;
 import com.example.exceptions.InvalidUserActivation;
+import com.example.exceptions.UserAlreadyAutentificatedException;
 import com.example.model.User;
 import com.example.rest.Message;
 import com.example.service.interfaces.IUserActivationService;
@@ -55,6 +56,8 @@ public class UserController {
         } catch (ActivationExpiredException e) {
             return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
         } catch (InvalidUserActivation e) {
+            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (UserAlreadyAutentificatedException e) {
             return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
         }
     }
