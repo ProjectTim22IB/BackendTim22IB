@@ -8,6 +8,8 @@ import com.example.model.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
+import javax.mail.MessagingException;
+import java.io.UnsupportedEncodingException;
 import java.util.Optional;
 
 public interface IUserService extends UserDetailsService {
@@ -16,7 +18,11 @@ public interface IUserService extends UserDetailsService {
 
     Optional<User> getByEmail(String email);
 
-    User createUser(RegistrationUserDTO userDto) throws EmailAlreadyExistException;
+    User createUser(RegistrationUserDTO userDto) throws EmailAlreadyExistException, MessagingException, UnsupportedEncodingException;
 
     TokensDTO loginUser(LoginDTO login);
+
+    void resetPasswordByEmail(String id) throws MessagingException, UnsupportedEncodingException;
+
+    void resetPasswordBySMS(String id);
 }

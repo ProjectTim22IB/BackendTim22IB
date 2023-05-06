@@ -49,12 +49,13 @@ public class WebSecurityConfig {
 //                .antMatchers("/api/**").permitAll()
                 .antMatchers("/api/user/login").permitAll()
                 .antMatchers("/api/user/registration").permitAll()
+                .antMatchers("/api/user/activate/*").permitAll() //OVO PROVERITI
                 .antMatchers("/**").authenticated()
                 .and()
                 .headers().frameOptions().disable().and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .exceptionHandling()
-                .authenticationEntryPoint(entryPoint); //umesto authenticationEntryPoint
+                .authenticationEntryPoint(entryPoint);
 
         http.addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

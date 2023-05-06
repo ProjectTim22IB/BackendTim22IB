@@ -41,9 +41,6 @@ public class User implements UserDetails {
 //    @Column(name = "Password")
     private String password;
 
-//    @Column(name = "ConfromationToken")
-    private String conformationToken;
-
 //    @Column(name = "Autentificated")
     private boolean autentificated;
 
@@ -106,14 +103,6 @@ public class User implements UserDetails {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getConformationToken() {
-        return conformationToken;
-    }
-
-    public void setConformationToken(String conformationToken) {
-        this.conformationToken = conformationToken;
     }
 
     public boolean isAutentificated() {
