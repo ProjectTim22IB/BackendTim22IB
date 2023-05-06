@@ -19,6 +19,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -140,5 +141,21 @@ public class CertificateService implements ICertificateService {
         //Certificate certificate = getCertificateBySerialNumber(serialNumber).get();
 
     }
+
+
+    @Override
+    public boolean isValidCertificate(MultipartFile file) {
+
+//        try {
+//            return isValidCertificate(certificateUtils.getSerialNumber(file));
+//        } catch (CertificateException | IOException e) {
+//            e.printStackTrace();
+//            return false;
+//        }
+        return true;
+    }
+
+
+
 
 }

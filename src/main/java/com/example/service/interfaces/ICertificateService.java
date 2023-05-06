@@ -4,6 +4,7 @@ import com.example.dto.RequestCertificateDTO;
 import com.example.model.Certificate;
 import com.example.model.CertificateRequest;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.KeyPair;
@@ -36,4 +37,6 @@ public interface ICertificateService {
 =======
     void downloadCertificate(String serialNumber);
 >>>>>>> Stashed changes
+
+    boolean isValidCertificate(MultipartFile file);
 }

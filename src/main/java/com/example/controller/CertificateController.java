@@ -21,6 +21,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Objects;
 
 
 @RestController
@@ -59,7 +63,6 @@ public class CertificateController {
         }
     }
 
-<<<<<<< Updated upstream
     @PutMapping(value = "withdraw/{serialNumber}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity<?> withdrawCertificate(@PathVariable("serialNumber") String serialNumber, @RequestBody CertificateWithdrawalDTO withdrawalDTO){
@@ -73,7 +76,6 @@ public class CertificateController {
         return new ResponseEntity<>(new Message("Successfully withdrawn certificate!"), HttpStatus.OK);
     }
 
-=======
     @PutMapping(value = "download/{serialNumber}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity<?> downloadCertificate(@PathVariable("serialNumber") String serialNumber){
@@ -89,5 +91,24 @@ public class CertificateController {
         return new ResponseEntity<>(new Message("Successfully downloaded certificate!"), HttpStatus.OK);
 
     }
->>>>>>> Stashed changes
+
+
+    @GetMapping(value = "/validByCopy", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity<?> checkIfValidByCopy(@RequestParam("file") MultipartFile file){
+
+        if (!Objects.equals(file.getContentType(), "application/x-x509-ca-cert")) {
+            return new ResponseEntity<>(new Message("Certificate does not exist!"), HttpStatus.NOT_FOUND);
+        }
+
+        if (file.getSize() > 1000000) {
+            return new ResponseEntity<>(new Message("File is too large!"), HttpStatus.BAD_REQUEST);
+        }
+        try {
+            Boolean valid = certificateService.checkIfValid(file.toString());
+            return new ResponseEntity<>(valid, HttpStatus.OK);
+        } catch (ResponseStatusException ex) {
+            return new ResponseEntity<>(ex.getReason(), ex.getStatus());
+        }
+    }
 }
