@@ -79,6 +79,16 @@ public class CertificateRequestController {
         return new ResponseEntity<>(allRequests, HttpStatus.OK);
     }
 
+    @GetMapping(value = "/allRequests", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
+    public ResponseEntity<?> getAllRequests(){
+        List<CertificateRequest> allRequests = this.certificateRequestRepository.findAll();
+        if(allRequests.size() == 0){
+            return new ResponseEntity<>(new Message("There are no certificate requests!"), HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(allRequests, HttpStatus.OK);
+    }
+
     @PostMapping(value = "/acceptance/{requestId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity<?> acceptanceOfRequest(@PathVariable("requestId") Long requestId, @RequestBody ApprovalOfRequestDTO approvalOfRequest){
