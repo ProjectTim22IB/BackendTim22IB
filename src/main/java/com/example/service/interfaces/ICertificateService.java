@@ -28,4 +28,8 @@ public interface ICertificateService {
     void generateCertificate(CertificateRequest certificateRequest, Certificate certificate) throws CertificateException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, IOException, KeyStoreException;
 
     KeyPair generateKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException;
+
+    void withdrawCertificate(String serialNumber);
+
+    List<Certificate> findAllCertificatesSignedBy(Certificate certificate);
 }

@@ -26,10 +26,7 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 
 @Service
 public class CertificateService implements ICertificateService {
@@ -110,6 +107,32 @@ public class CertificateService implements ICertificateService {
         SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG", "SUN");
         keyPairGenerator.initialize(2048, secureRandom);
         return keyPairGenerator.generateKeyPair();
+    }
+
+    @Override
+    public void withdrawCertificate(String serialNumber) {
+        Certificate certificate = getCertificateBySerialNumber(serialNumber).get();
+        certificate.setStatus(CertificateStatus.NOTVALID);
+        this.certificateRepository.save(certificate);
+        List<Certificate> signedBy = findAllCertificatesSignedBy(certificate);
+        for(Certificate c : signedBy){
+            c.setStatus(CertificateStatus.NOTVALID);
+            this.certificateRepository.save(c);
+        }
+    }
+
+    @Override
+    public List<Certificate> findAllCertificatesSignedBy(Certificate certificate) {
+        List<Certificate> allCertificates = this.certificateRepository.findAll();
+        List<Certificate> signedBy = new ArrayList<>();
+        for(Certificate c : allCertificates){
+            if(c.getIssuerSerialNumber() != null){
+                if(c.getIssuerSerialNumber().equals(certificate.getSerialNumber())){
+                    signedBy.add(c);
+                }
+            }
+        }
+        return signedBy;
     }
 
 

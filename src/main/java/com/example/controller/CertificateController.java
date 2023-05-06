@@ -1,8 +1,11 @@
 package com.example.controller;
 
+import com.example.dto.CertificateWithdrawalDTO;
 import com.example.dto.RequestCertificateDTO;
+import com.example.enums.Role;
 import com.example.model.Certificate;
 import com.example.repository.CertificateRepository;
+import com.example.repository.UserRepository;
 import com.example.rest.Message;
 import com.example.service.interfaces.ICertificateRequestService;
 import com.example.service.interfaces.ICertificateService;
@@ -25,11 +28,13 @@ public class CertificateController {
 
     private final ICertificateService certificateService;
     private final CertificateRepository certificateRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public CertificateController(ICertificateService certificateService, CertificateRepository certificateRepository) {
+    public CertificateController(ICertificateService certificateService, CertificateRepository certificateRepository, UserRepository userRepository) {
         this.certificateService = certificateService;
         this.certificateRepository = certificateRepository;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -51,6 +56,19 @@ public class CertificateController {
         else {
             return new ResponseEntity<>(new Message("Certificate is not valid!"), HttpStatus.OK);
         }
+    }
+
+    @PutMapping(value = "withdraw/{serialNumber}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity<?> withdrawCertificate(@PathVariable("serialNumber") String serialNumber, @RequestBody CertificateWithdrawalDTO withdrawalDTO){
+        if(!this.certificateRepository.findBySerialNumber(serialNumber).isPresent()){
+            return new ResponseEntity<>(new Message("Certificate does not exist!"), HttpStatus.NOT_FOUND);
+        }
+        if(!this.certificateRepository.findBySerialNumber(serialNumber).get().getEmail().equals(withdrawalDTO.getEmail()) && this.userRepository.findByEmail(withdrawalDTO.getEmail()).get().getRole() != Role.ADMIN){
+            return new ResponseEntity<>(new Message("Can't withdraw certificate which you don't own!"), HttpStatus.BAD_REQUEST);
+        }
+        this.certificateService.withdrawCertificate(serialNumber);
+        return new ResponseEntity<>(new Message("Successfully withdrawn certificate!"), HttpStatus.OK);
     }
 
 }
