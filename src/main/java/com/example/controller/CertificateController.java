@@ -24,6 +24,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 import java.io.IOException;
@@ -93,21 +95,16 @@ public class CertificateController {
             return new ResponseEntity<>(new Message("Certificate with this serial number does not exist!"), HttpStatus.NOT_FOUND);
         }
         try {
-            // Load keystore from file
             KeyStore keyStore = this.keyStoreUtils.loadKeyStore();
 
-            // Get certificate from keystore
             X509Certificate certificate = (X509Certificate) keyStore.getCertificate(serialNumber);
 
-            // Convert certificate to byte array
             byte[] certificateData = certificate.getEncoded();
 
-            // Set response headers
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             headers.setContentDispositionFormData("attachment", serialNumber + ".cer");
 
-            // Return response with certificate data
             return new ResponseEntity<>(certificateData, headers, HttpStatus.OK);
         } catch (KeyStoreException | IOException | CertificateException e) {
             e.printStackTrace();
@@ -118,22 +115,25 @@ public class CertificateController {
     }
 
 
-    @GetMapping(value = "/validByCopy", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping("/valid")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
-    public ResponseEntity<?> checkIfValidByCopy(@RequestParam("file") MultipartFile file){
-
-        if (!Objects.equals(file.getContentType(), "application/x-x509-ca-cert")) {
-            return new ResponseEntity<>(new Message("Certificate does not exist!"), HttpStatus.NOT_FOUND);
-        }
-
-        if (file.getSize() > 1000000) {
-            return new ResponseEntity<>(new Message("File is too large!"), HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<?> checkCertificateValidity(@RequestParam("file") MultipartFile file) {
         try {
-            Boolean valid = certificateService.checkIfValid(file.toString());
-            return new ResponseEntity<>(valid, HttpStatus.OK);
-        } catch (ResponseStatusException ex) {
-            return new ResponseEntity<>(ex.getReason(), ex.getStatus());
+            CertificateFactory factory = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) factory.generateCertificate(file.getInputStream());
+
+            String serialNumber = cert.getSerialNumber().toString(16).toUpperCase();
+
+            boolean isValid = this.certificateService.checkIfValid(serialNumber);
+            if (isValid) {
+                return new ResponseEntity<>(new Message("Certificate is valid!"), HttpStatus.OK);
+            }
+            else {
+                return new ResponseEntity<>(new Message("Certificate is not valid!"), HttpStatus.OK);
+            }
+        } catch (CertificateException | IOException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(new Message("Failed to parse certificate."), HttpStatus.BAD_REQUEST);
         }
     }
 
