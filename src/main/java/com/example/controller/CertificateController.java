@@ -10,6 +10,7 @@ import com.example.rest.Message;
 import com.example.service.interfaces.ICertificateRequestService;
 import com.example.service.interfaces.ICertificateService;
 import com.example.service.interfaces.IUserService;
+import com.example.utils.KeyStoreUtils;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
 import org.hibernate.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import java.security.cert.X509Certificate;
 
+import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.cert.CertificateException;
 import java.util.Objects;
 
 
@@ -34,12 +42,14 @@ public class CertificateController {
     private final ICertificateService certificateService;
     private final CertificateRepository certificateRepository;
     private final UserRepository userRepository;
+    private final KeyStoreUtils keyStoreUtils;
 
     @Autowired
-    public CertificateController(ICertificateService certificateService, CertificateRepository certificateRepository, UserRepository userRepository) {
+    public CertificateController(ICertificateService certificateService, CertificateRepository certificateRepository, UserRepository userRepository, KeyStoreUtils keyStoreUtils) {
         this.certificateService = certificateService;
         this.certificateRepository = certificateRepository;
         this.userRepository = userRepository;
+        this.keyStoreUtils = keyStoreUtils;
     }
 
     @GetMapping
@@ -76,17 +86,35 @@ public class CertificateController {
         return new ResponseEntity<>(new Message("Successfully withdrawn certificate!"), HttpStatus.OK);
     }
 
-    @PutMapping(value = "download/{serialNumber}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/download/{serialNumber}")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
-    public ResponseEntity<?> downloadCertificate(@PathVariable("serialNumber") String serialNumber){
+    public ResponseEntity<?> downloadCertificate(@PathVariable("serialNumber") String serialNumber) {
         if(!this.certificateRepository.findBySerialNumber(serialNumber).isPresent()){
-            return new ResponseEntity<>(new Message("Certificate does not exist!"), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new Message("Certificate with this serial number does not exist!"), HttpStatus.NOT_FOUND);
         }
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.setContentDispositionFormData("attachment", serialNumber + ".crt");
+        try {
+            // Load keystore from file
+            KeyStore keyStore = this.keyStoreUtils.loadKeyStore();
 
-        return new ResponseEntity<>(new Message("Successfully downloaded certificate!"), HttpStatus.OK);
+            // Get certificate from keystore
+            X509Certificate certificate = (X509Certificate) keyStore.getCertificate(serialNumber);
+
+            // Convert certificate to byte array
+            byte[] certificateData = certificate.getEncoded();
+
+            // Set response headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", serialNumber + ".cer");
+
+            // Return response with certificate data
+            return new ResponseEntity<>(certificateData, headers, HttpStatus.OK);
+        } catch (KeyStoreException | IOException | CertificateException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -108,4 +136,5 @@ public class CertificateController {
             return new ResponseEntity<>(ex.getReason(), ex.getStatus());
         }
     }
+
 }

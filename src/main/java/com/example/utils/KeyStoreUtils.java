@@ -25,7 +25,7 @@ public class KeyStoreUtils {
 
     public KeyStore loadKeyStore() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, NoSuchProviderException {
         KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE, KEYSTORE_PROVIDER);
-        FileInputStream inputStream = new FileInputStream(KEYSTORE_PATH);
+        FileInputStream inputStream = new FileInputStream(KEYSTORE_PATH + ".jks");
         keyStore.load(inputStream, PASSWORD.toCharArray());
         return keyStore;
     }
