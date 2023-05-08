@@ -24,9 +24,8 @@ public interface ICertificateService {
 
     boolean checkIfValid(String serialNumber);
 
-    void createNewCertificate(CertificateRequest request);
+    Certificate createNewCertificate(CertificateRequest request);
 
-<<<<<<< Updated upstream
     void generateCertificate(CertificateRequest certificateRequest, Certificate certificate) throws CertificateException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, IOException, KeyStoreException;
 
     KeyPair generateKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException;
@@ -34,9 +33,7 @@ public interface ICertificateService {
     void withdrawCertificate(String serialNumber);
 
     List<Certificate> findAllCertificatesSignedBy(Certificate certificate);
-=======
     void downloadCertificate(String serialNumber);
->>>>>>> Stashed changes
 
     boolean isValidCertificate(MultipartFile file);
 }

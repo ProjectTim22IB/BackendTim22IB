@@ -11,6 +11,7 @@ import com.example.repository.CertificateRequestRepository;
 import com.example.repository.UserRepository;
 import com.example.rest.Message;
 import com.example.service.interfaces.ICertificateRequestService;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,6 +19,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -91,7 +97,7 @@ public class CertificateRequestController {
 
     @PostMapping(value = "/acceptance/{requestId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
-    public ResponseEntity<?> acceptanceOfRequest(@PathVariable("requestId") Long requestId, @RequestBody ApprovalOfRequestDTO approvalOfRequest){
+    public ResponseEntity<?> acceptanceOfRequest(@PathVariable("requestId") Long requestId, @RequestBody ApprovalOfRequestDTO approvalOfRequest) throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, NoSuchProviderException, OperatorCreationException {
         if(!this.certificateRequestRepository.findById(requestId).isPresent()){
             return new ResponseEntity<>(new Message("Request with this id doesn't exist!"), HttpStatus.NOT_FOUND);
         }

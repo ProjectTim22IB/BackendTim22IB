@@ -71,7 +71,7 @@ public class CertificateService implements ICertificateService {
     }
 
     @Override
-    public void createNewCertificate(CertificateRequest request) {
+    public Certificate createNewCertificate(CertificateRequest request) {
         Random randomNum = new Random();
         int serialNumber = randomNum.nextInt(10000);
         while (this.certificateRepository.findBySerialNumber(String.valueOf(serialNumber)).isPresent()){
@@ -82,6 +82,8 @@ public class CertificateService implements ICertificateService {
 
         request.setStatus(CertificateRequestStatus.APPROVED);
         this.certificateRequestRepository.save(request);
+
+        return certificate;
     }
 
     @Override
@@ -99,7 +101,16 @@ public class CertificateService implements ICertificateService {
         certificateConverter = certificateConverter.setProvider("BC");
         X509Certificate generatedCertificate = certificateConverter.getCertificate(certificateHolder);
 
-        keyStoreUtils.saveNewCertificate(generatedCertificate, certificate,privateKey);
+        KeyStore keyStore;
+        try {
+            keyStore = this.keyStoreUtils.loadKeyStore();
+        } catch (IOException e) {
+            keyStore = this.keyStoreUtils.createKeyStore();
+        }
+
+        this.keyStoreUtils.saveCertificateToKeyStore(keyStore, certificate.getSerialNumber(), generatedCertificate, privateKey);
+
+        this.keyStoreUtils.saveKeyStoreToFile(keyStore);
     }
 
     @Override

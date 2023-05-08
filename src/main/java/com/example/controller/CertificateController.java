@@ -87,7 +87,6 @@ public class CertificateController {
         headers.setContentDispositionFormData("attachment", serialNumber + ".crt");
 
         return new ResponseEntity<>(new Message("Successfully downloaded certificate!"), HttpStatus.OK);
-
     }
 
 

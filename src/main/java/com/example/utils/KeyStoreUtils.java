@@ -1,32 +1,49 @@
 package com.example.utils;
 
-import com.example.model.Certificate;
 import org.springframework.stereotype.Component;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.security.*;
+import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 
 @Component
 public class KeyStoreUtils {
-    private final KeyStore keyStore;
 
-    public KeyStoreUtils() throws KeyStoreException, NoSuchProviderException {
-        this.keyStore = KeyStore.getInstance("JKS", "SUN");
+    private static final String KEYSTORE_TYPE = "JKS";
+    private static final String KEYSTORE_PROVIDER = "SUN";
+    private static final String KEYSTORE_FILE_EXTENSION = ".jks";
+    private static final String PASSWORD = "tim22";
+    private static final String KEYSTORE_PATH = "C://Users//Svetozar//Desktop//DRUGI SEMESTAR//Informaciona bezbednost//Projekat//BackendTim22IB//src//main//java//com//example//keystores/mykeystore";
+
+    public KeyStore loadKeyStore() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, NoSuchProviderException {
+        KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE, KEYSTORE_PROVIDER);
+        FileInputStream inputStream = new FileInputStream(KEYSTORE_PATH);
+        keyStore.load(inputStream, PASSWORD.toCharArray());
+        return keyStore;
     }
 
-    private void loadKeyStore() throws IOException, CertificateException, NoSuchAlgorithmException {
-        keyStore.load(new FileInputStream("keystores/certificates.jks"), "IBTim22".toCharArray());
+    public KeyStore createKeyStore() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, NoSuchProviderException {
+        KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE, KEYSTORE_PROVIDER);
+        keyStore.load(null, PASSWORD.toCharArray());
+        return keyStore;
     }
 
-    public void saveNewCertificate(java.security.cert.Certificate generatedCertificate, Certificate certificate, PrivateKey privateKey) throws CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException {
-        loadKeyStore();
-        keyStore.setCertificateEntry(certificate.getSerialNumber() + "CRT", generatedCertificate);
-        String pass = certificate.getSerialNumber() + "PASS";
-        keyStore.setKeyEntry(certificate.getSerialNumber() + "KEY", privateKey, pass.toCharArray(), new java.security.cert.Certificate[]{generatedCertificate});
+    public void saveCertificateToKeyStore(KeyStore keyStore, String alias, Certificate certificate, PrivateKey privateKey) throws KeyStoreException {
+        keyStore.setKeyEntry(alias, privateKey, PASSWORD.toCharArray(), new Certificate[]{certificate});
+    }
+
+    public void saveKeyStoreToFile(KeyStore keyStore) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
+        FileOutputStream outputStream = new FileOutputStream(Paths.get(KEYSTORE_PATH + KEYSTORE_FILE_EXTENSION).toString());
+        keyStore.store(outputStream, PASSWORD.toCharArray());
+        outputStream.close();
     }
 }
+

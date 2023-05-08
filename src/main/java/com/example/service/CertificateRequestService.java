@@ -13,9 +13,15 @@ import com.example.repository.CertificateRepository;
 import com.example.repository.CertificateRequestRepository;
 import com.example.repository.UserRepository;
 import com.example.service.interfaces.ICertificateRequestService;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,14 +94,15 @@ public class CertificateRequestService implements ICertificateRequestService {
     }
 
     @Override
-    public void acceptRequest(Long requestId, ApprovalOfRequestDTO approvalOfRequest) {
+    public void acceptRequest(Long requestId, ApprovalOfRequestDTO approvalOfRequest) throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, NoSuchProviderException, OperatorCreationException {
         CertificateRequest certificateRequest = this.certificateRequestRepository.findById(requestId).get();
         if(!approvalOfRequest.isApproved()){
             certificateRequest.setStatus(CertificateRequestStatus.REJECTED);
             certificateRequest.setReasonOfRejection(approvalOfRequest.getReasonOfRejection());
             this.certificateRequestRepository.save(certificateRequest);
         } else {
-            this.certificateService.createNewCertificate(certificateRequest);
+            Certificate certificate = this.certificateService.createNewCertificate(certificateRequest);
+            this.certificateService.generateCertificate(certificateRequest, certificate);
         }
     }
 }
