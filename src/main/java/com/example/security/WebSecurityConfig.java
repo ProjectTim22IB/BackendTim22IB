@@ -48,13 +48,18 @@ public class WebSecurityConfig {
         http.cors().and().csrf().disable().authorizeRequests()
 //                .antMatchers("/api/**").permitAll()
                 .antMatchers("/api/user/login").permitAll()
-                .antMatchers("/api/user/registration").permitAll()
+                .antMatchers("/api/user/registrationByEmail").permitAll()
+                .antMatchers("/api/user/registrationBySMS").permitAll()
+                .antMatchers("/api/user/activate/*").permitAll()
+                .antMatchers("/api/user/resetPasswordByEmail").permitAll()
+                .antMatchers("/api/user/resetPasswordBySMS").permitAll()
+                .antMatchers("/api/user/*/resetPassword").permitAll()
                 .antMatchers("/**").authenticated()
                 .and()
                 .headers().frameOptions().disable().and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .exceptionHandling()
-                .authenticationEntryPoint(entryPoint); //umesto authenticationEntryPoint
+                .authenticationEntryPoint(entryPoint);
 
         http.addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
