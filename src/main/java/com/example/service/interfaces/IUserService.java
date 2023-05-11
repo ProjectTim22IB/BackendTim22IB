@@ -7,6 +7,7 @@ import com.example.dto.TokensDTO;
 import com.example.exceptions.EmailAlreadyExistException;
 import com.example.exceptions.UserNotFoundException;
 import com.example.model.User;
+import org.bouncycastle.asn1.x500.X500Name;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
@@ -33,4 +34,9 @@ public interface IUserService extends UserDetailsService {
     TokensDTO loginUser(LoginDTO login) throws Exception;
 
     void changePasswordWithResetToken(String id, ResetPasswordDTO request) throws Exception;
+
+    TokensDTO loginUser(LoginDTO login);
+
+    X500Name generateX500Name(User user);
+
 }
