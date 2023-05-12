@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.crypto.EncryptedPrivateKeyInfo;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.*;
@@ -148,25 +149,34 @@ public class CertificateService implements ICertificateService {
     }
 
 
-    public void downloadCertificate(String serialNumber) {
-        //Certificate certificate = getCertificateBySerialNumber(serialNumber).get();
-
-    }
-
-
     @Override
-    public boolean isValidCertificate(MultipartFile file) {
+    public void saveToKeystore(String issuerEmail, Certificate certificate) throws NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException, CertificateException, KeyStoreException, IOException {
+        JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
+        builder = builder.setProvider("BC");
 
-//        try {
-//            return isValidCertificate(certificateUtils.getSerialNumber(file));
-//        } catch (CertificateException | IOException e) {
-//            e.printStackTrace();
-//            return false;
-//        }
-        return true;
+        PrivateKey privateKey = generateKeyPair().getPrivate();
+        ContentSigner contentSigner = builder.build(privateKey);
+
+        X509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(this.userService.generateX500Name(this.userRepository.findByEmail(issuerEmail).get()), new BigInteger(certificate.getSerialNumber()), Date.from(certificate.getValidFrom().atZone(ZoneId.systemDefault()).toInstant()), Date.from(certificate.getValidTo().atZone(ZoneId.systemDefault()).toInstant()), this.userService.generateX500Name(this.userRepository.findByEmail(certificate.getEmail()).get()), generateKeyPair().getPublic());
+        X509CertificateHolder certificateHolder = certificateBuilder.build(contentSigner);
+        JcaX509CertificateConverter certificateConverter = new JcaX509CertificateConverter();
+        certificateConverter = certificateConverter.setProvider("BC");
+        X509Certificate generatedCertificate = certificateConverter.getCertificate(certificateHolder);
+
+        KeyStore keyStore;
+        try {
+            keyStore = this.keyStoreUtils.loadKeyStore();
+        } catch (IOException | KeyStoreException e) {
+            keyStore = this.keyStoreUtils.createKeyStore();
+        }
+
+        keyStore.setCertificateEntry(certificate.getSerialNumber(), generatedCertificate);
+
+        X509Certificate[] chain = new X509Certificate[]{ generatedCertificate };
+        keyStore.setKeyEntry(certificate.getSerialNumber(), privateKey.getEncoded(), chain);
+
+        this.keyStoreUtils.saveKeyStoreToFile(keyStore);
     }
-
-
 
 
 }

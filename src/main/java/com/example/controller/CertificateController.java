@@ -4,6 +4,7 @@ import com.example.dto.CertificateWithdrawalDTO;
 import com.example.dto.RequestCertificateDTO;
 import com.example.enums.Role;
 import com.example.model.Certificate;
+import com.example.model.CertificateRequest;
 import com.example.repository.CertificateRepository;
 import com.example.repository.UserRepository;
 import com.example.rest.Message;
@@ -12,6 +13,7 @@ import com.example.service.interfaces.ICertificateService;
 import com.example.service.interfaces.IUserService;
 import com.example.utils.KeyStoreUtils;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.hibernate.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -135,6 +137,17 @@ public class CertificateController {
             e.printStackTrace();
             return new ResponseEntity<>(new Message("Failed to parse certificate."), HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @PostMapping("/addToKeystore/{serialNumber}")
+    public ResponseEntity<?> addToKeystore(@PathVariable("serialNumber") String serialNumber) throws CertificateException, NoSuchAlgorithmException, IOException, KeyStoreException, NoSuchProviderException, OperatorCreationException {
+        if(!this.certificateRepository.findBySerialNumber(serialNumber).isPresent()){
+            return new ResponseEntity<>(new Message("Certificate with this serial number does not exist!"), HttpStatus.NOT_FOUND);
+        }
+        Certificate certificate = this.certificateRepository.findBySerialNumber(serialNumber).get();
+//        Certificate issuerCertificate = this.certificateRepository.findBySerialNumber(certificate.getIssuerSerialNumber()).get();
+        this.certificateService.saveToKeystore(certificate.getEmail(), certificate);
+        return new ResponseEntity<>(new Message("Successfully saved to keystore!"), HttpStatus.OK);
     }
 
 }

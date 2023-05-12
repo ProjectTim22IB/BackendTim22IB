@@ -186,7 +186,7 @@ public class UserService implements IUserService {
     public void changePasswordWithResetToken(String id, ResetPasswordDTO request) throws Exception {
         User user = this.getUser(id).get();
 
-        if(!request.getNewPassword().equals(request.getRepeateNewPassword())){
+        if (!request.getNewPassword().equals(request.getRepeateNewPassword())) {
             throw new Exception();
         }
 
@@ -200,6 +200,7 @@ public class UserService implements IUserService {
         user.setResetPasswordTokenExpiration(null);
         this.userRepository.save(user);
 
+    }
     public X500Name generateX500Name(User user) {
         X500NameBuilder builder = new X500NameBuilder(BCStrictStyle.INSTANCE);
         builder.addRDN(BCStyle.CN, user.getName() + " " + user.getSurname());
