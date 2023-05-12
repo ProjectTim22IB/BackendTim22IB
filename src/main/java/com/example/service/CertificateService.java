@@ -14,14 +14,15 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8EncryptorBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS8EncryptedPrivateKeyInfoBuilder;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS8Generator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.crypto.EncryptedPrivateKeyInfo;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.*;
@@ -154,10 +155,29 @@ public class CertificateService implements ICertificateService {
         JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
         builder = builder.setProvider("BC");
 
+// Generate a password for encrypting the private key
+        char[] password = "password".toCharArray();
+
         PrivateKey privateKey = generateKeyPair().getPrivate();
         ContentSigner contentSigner = builder.build(privateKey);
 
-        X509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(this.userService.generateX500Name(this.userRepository.findByEmail(issuerEmail).get()), new BigInteger(certificate.getSerialNumber()), Date.from(certificate.getValidFrom().atZone(ZoneId.systemDefault()).toInstant()), Date.from(certificate.getValidTo().atZone(ZoneId.systemDefault()).toInstant()), this.userService.generateX500Name(this.userRepository.findByEmail(certificate.getEmail()).get()), generateKeyPair().getPublic());
+// Use EncryptedPrivateKeyInfo to encrypt the private key
+        JceOpenSSLPKCS8EncryptorBuilder encryptorBuilder = new JceOpenSSLPKCS8EncryptorBuilder(PKCS8Generator.AES_256_CBC);
+        encryptorBuilder.setProvider("BC");
+        encryptorBuilder.setPasssword(password);
+
+        PKCS8EncryptedPrivateKeyInfo encryptedPrivateKeyInfo = new JcaPKCS8EncryptedPrivateKeyInfoBuilder(privateKey)
+                .setEncryptor(encryptorBuilder.build())
+                .build();
+
+        X509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(
+                this.userService.generateX500Name(this.userRepository.findByEmail(issuerEmail).get()),
+                new BigInteger(certificate.getSerialNumber()),
+                Date.from(certificate.getValidFrom().atZone(ZoneId.systemDefault()).toInstant()),
+                Date.from(certificate.getValidTo().atZone(ZoneId.systemDefault()).toInstant()),
+                this.userService.generateX500Name(this.userRepository.findByEmail(certificate.getEmail()).get()),
+                generateKeyPair().getPublic());
+
         X509CertificateHolder certificateHolder = certificateBuilder.build(contentSigner);
         JcaX509CertificateConverter certificateConverter = new JcaX509CertificateConverter();
         certificateConverter = certificateConverter.setProvider("BC");
@@ -173,7 +193,7 @@ public class CertificateService implements ICertificateService {
         keyStore.setCertificateEntry(certificate.getSerialNumber(), generatedCertificate);
 
         X509Certificate[] chain = new X509Certificate[]{ generatedCertificate };
-        keyStore.setKeyEntry(certificate.getSerialNumber(), privateKey.getEncoded(), chain);
+        keyStore.setKeyEntry(certificate.getSerialNumber(), encryptedPrivateKeyInfo.getEncoded(), chain);
 
         this.keyStoreUtils.saveKeyStoreToFile(keyStore);
     }
