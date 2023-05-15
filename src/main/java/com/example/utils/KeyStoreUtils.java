@@ -1,10 +1,24 @@
 package com.example.utils;
 
+import com.example.repository.CertificateRepository;
+import com.example.repository.UserRepository;
+import com.example.service.CertificateService;
+import com.example.service.interfaces.ICertificateService;
+import com.example.service.interfaces.IUserService;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -13,6 +27,12 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.List;
 
 @Component
 public class KeyStoreUtils {
@@ -24,10 +44,24 @@ public class KeyStoreUtils {
     private static final String KEYSTORE_PATH = "C://Users//Svetozar//Desktop//DRUGI SEMESTAR//Informaciona bezbednost//Projekat//BackendTim22IB//src//main//java//com//example//keystores/mykeystore";
 
     public KeyStore loadKeyStore() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, NoSuchProviderException {
-        KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE, KEYSTORE_PROVIDER);
-        FileInputStream inputStream = new FileInputStream(KEYSTORE_PATH + ".jks");
-        keyStore.load(inputStream, PASSWORD.toCharArray());
-        return keyStore;
+            KeyStore keyStore = KeyStore.getInstance(KEYSTORE_TYPE, KEYSTORE_PROVIDER);
+            File keystoreFile = new File(KEYSTORE_PATH + KEYSTORE_FILE_EXTENSION);
+            FileInputStream inputStream = new FileInputStream(keystoreFile);
+            keyStore.load(inputStream, PASSWORD.toCharArray());
+            inputStream.close();
+
+//            Enumeration<String> aliases = keyStore.aliases();
+//            while (aliases.hasMoreElements()) {
+//                String alias = aliases.nextElement();
+//
+//                keyStore.deleteEntry(alias);
+//            }
+
+            FileOutputStream outputStream = new FileOutputStream(keystoreFile);
+            keyStore.store(outputStream, PASSWORD.toCharArray());
+            outputStream.close();
+
+            return keyStore;
     }
 
     public KeyStore createKeyStore() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, NoSuchProviderException {
@@ -45,5 +79,6 @@ public class KeyStoreUtils {
         keyStore.store(outputStream, PASSWORD.toCharArray());
         outputStream.close();
     }
+
 }
 
