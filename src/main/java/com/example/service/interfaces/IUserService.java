@@ -35,7 +35,6 @@ public interface IUserService extends UserDetailsService {
 
     void changePasswordWithResetToken(String id, ResetPasswordDTO request) throws Exception;
 
-    TokensDTO loginUser(LoginDTO login);
 
     X500Name generateX500Name(User user);
 
