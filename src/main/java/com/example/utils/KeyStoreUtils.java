@@ -20,7 +20,7 @@ public class KeyStoreUtils {
     private static final String KEYSTORE_TYPE = "JKS";
     private static final String KEYSTORE_PROVIDER = "SUN";
     private static final String KEYSTORE_FILE_EXTENSION = ".jks";
-    private static final String PASSWORD = "tim22";
+    private static final String PASSWORD = "ibtim22";
     private static final String KEYSTORE_PATH = "C://Users//Svetozar//Desktop//DRUGI SEMESTAR//Informaciona bezbednost//Projekat//BackendTim22IB//src//main//java//com//example//keystores/mykeystore";
 
     public KeyStore loadKeyStore() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException, NoSuchProviderException {
