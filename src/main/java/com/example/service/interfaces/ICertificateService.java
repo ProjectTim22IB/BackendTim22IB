@@ -33,7 +33,6 @@ public interface ICertificateService {
     void withdrawCertificate(String serialNumber);
 
     List<Certificate> findAllCertificatesSignedBy(Certificate certificate);
-    void downloadCertificate(String serialNumber);
 
-    boolean isValidCertificate(MultipartFile file);
+    public void loadExistingCertificates() throws NoSuchProviderException, OperatorCreationException, CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException;
 }

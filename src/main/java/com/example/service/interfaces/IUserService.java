@@ -23,7 +23,6 @@ public interface IUserService extends UserDetailsService {
 
     Optional<User> getByPhoneNumber(String phoneNumber);
 
-    X500Name generateX500Name(User user);
     User createUserByEmail(RegistrationUserDTO userDto) throws EmailAlreadyExistException, MessagingException, UnsupportedEncodingException;
 
     User createUserBySMS(RegistrationUserDTO userDto) throws EmailAlreadyExistException, MessagingException, UnsupportedEncodingException;
@@ -35,4 +34,7 @@ public interface IUserService extends UserDetailsService {
     TokensDTO loginUser(LoginDTO login) throws Exception;
 
     void changePasswordWithResetToken(String id, ResetPasswordDTO request) throws Exception;
+
+    X500Name generateX500Name(User user);
+
 }

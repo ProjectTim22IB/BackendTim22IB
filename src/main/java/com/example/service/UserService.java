@@ -89,7 +89,7 @@ public class UserService implements IUserService {
     @Override
     public User createUserByEmail(RegistrationUserDTO userDto) throws EmailAlreadyExistException, MessagingException, UnsupportedEncodingException {
 
-        if(userRepository.findByEmail(userDto.getEmail()).isPresent() == false && userRepository.findByPhoneNumber(userDto.getPhoneNumber()).isPresent() == false){
+        if(!userRepository.findByEmail(userDto.getEmail()).isPresent() && !userRepository.findByPhoneNumber(userDto.getPhoneNumber()).isPresent()){
 
             userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
             User user = RegistrationUserMapper.MAPPER.mapToUser(userDto);
@@ -111,7 +111,7 @@ public class UserService implements IUserService {
     @Override
     public User createUserBySMS(RegistrationUserDTO userDto) throws EmailAlreadyExistException, MessagingException, UnsupportedEncodingException {
 
-        if(userRepository.findByEmail(userDto.getEmail()).isPresent() == false && userRepository.findByPhoneNumber(userDto.getPhoneNumber()).isPresent() == false){
+        if(!userRepository.findByEmail(userDto.getEmail()).isPresent() && !userRepository.findByPhoneNumber(userDto.getPhoneNumber()).isPresent()){
 
             userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
             User user = RegistrationUserMapper.MAPPER.mapToUser(userDto);
@@ -143,7 +143,7 @@ public class UserService implements IUserService {
     @Override
     public TokensDTO loginUser(LoginDTO login) throws Exception {
         User user = getByEmail(login.getEmail()).get();
-        if(user.isAutentificated() == false){
+        if(!user.isAutentificated()){
             throw new Exception();
         }
         TokensDTO tokens = new TokensDTO();
@@ -166,7 +166,7 @@ public class UserService implements IUserService {
     }
 
     public void resetPasswordByEmail(String email) throws UserNotFoundException, MessagingException, UnsupportedEncodingException {
-            if(this.userRepository.findByEmail(email).isPresent() == false){
+            if(!this.userRepository.findByEmail(email).isPresent()){
                 throw new UserNotFoundException("User not found");
             }
             User user = this.getByEmail(email).get();
@@ -180,7 +180,7 @@ public class UserService implements IUserService {
 
     @Override
     public void resetPasswordBySMS(String toPhoneNumber) throws UserNotFoundException {
-        if(this.userRepository.findByPhoneNumber(toPhoneNumber).isPresent() == false){
+        if(!this.userRepository.findByPhoneNumber(toPhoneNumber).isPresent()){
             throw new UserNotFoundException("User not found");
         }
         User user = this.getByPhoneNumber(toPhoneNumber).get();
@@ -195,7 +195,7 @@ public class UserService implements IUserService {
     public void changePasswordWithResetToken(String id, ResetPasswordDTO request) throws Exception {
         User user = this.getUser(id).get();
 
-        if(!request.getNewPassword().equals(request.getRepeateNewPassword())){
+        if (!request.getNewPassword().equals(request.getRepeateNewPassword())) {
             throw new Exception();
         }
 
@@ -209,4 +209,5 @@ public class UserService implements IUserService {
         user.setResetPasswordTokenExpiration(null);
         this.userRepository.save(user);
     }
+
 }
