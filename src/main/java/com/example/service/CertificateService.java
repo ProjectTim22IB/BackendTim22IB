@@ -12,6 +12,7 @@ import com.example.service.interfaces.ICertificateService;
 import com.example.service.interfaces.IUserService;
 import com.example.utils.KeyStoreUtils;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -177,6 +178,10 @@ public class CertificateService implements ICertificateService {
 
 
             X509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(x500Name, new BigInteger(c.getSerialNumber()), Date.from(c.getValidFrom().atZone(ZoneId.systemDefault()).toInstant()), Date.from(c.getValidTo().atZone(ZoneId.systemDefault()).toInstant()), this.userService.generateX500Name(this.userRepository.findByEmail(c.getEmail()).get()), this.generateKeyPair().getPublic());
+
+            if(c.getCertificateType() == CertificateType.ROOT){
+                certificateBuilder.addExtension(org.bouncycastle.asn1.x509.Extension.basicConstraints, true, new BasicConstraints(true));
+            }
 
             X509CertificateHolder certificateHolder = certificateBuilder.build(contentSigner);
             JcaX509CertificateConverter certificateConverter = new JcaX509CertificateConverter();

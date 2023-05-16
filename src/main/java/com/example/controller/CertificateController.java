@@ -139,7 +139,7 @@ public class CertificateController {
         }
     }
 
-    @PostMapping("/addtoKeystore")
+    @PostMapping("/addToKeystore")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity<?> addtoKeystore() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
         this.certificateService.loadExistingCertificates();
