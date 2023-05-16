@@ -122,15 +122,15 @@ public class UserController {
         }
     }
 
-    @PutMapping (value = "/{id}/changePassword", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> changePassword(@PathVariable("id") String id, @RequestBody ChangePasswordDTO request) {
-        try{
-            this.userService.changePasswordWithResetToken(id, request);
-            return new ResponseEntity<>(HttpStatus.OK);
-        } catch (MessagingException | UnsupportedEncodingException | UserNotFoundException e) {
-            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
-        }
-    }
+//    @PutMapping (value = "/{id}/changePassword", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<?> changePassword(@PathVariable("id") String id, @RequestBody ChangePasswordDTO request) {
+//        try{
+//            this.userService.changePasswordWithResetToken(id, request);
+//            return new ResponseEntity<>(HttpStatus.OK);
+//        } catch (MessagingException | UnsupportedEncodingException | UserNotFoundException e) {
+//            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+//        } catch (Exception e) {
+//            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+//        }
+//    }
 }

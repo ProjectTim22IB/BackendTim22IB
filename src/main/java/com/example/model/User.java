@@ -59,7 +59,7 @@ public class User implements UserDetails {
 
 //    @Column(name = "OldPasswords")
     @ElementCollection
-    private List<String> oldPasswords;
+    private List<String> oldPasswords = new ArrayList<>();
 
 //    @Column(name = "LastPasswordResetDate)
     private LocalDateTime lastPasswordResetDate;

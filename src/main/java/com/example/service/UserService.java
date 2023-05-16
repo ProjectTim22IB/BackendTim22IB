@@ -32,12 +32,16 @@ import org.springframework.stereotype.Service;
 import javax.mail.MessagingException;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
 @Service
 public class UserService implements IUserService {
 
+
+    private static final int MAX_PASSWORDS = 4;
     private UserRepository userRepository;
     private UserActivationRepository userActivationRepository;
 
@@ -92,6 +96,7 @@ public class UserService implements IUserService {
 
             user.setRole(Role.USER);
             user.setLastPasswordResetDate(LocalDateTime.now().plusYears(1));
+            addPassword(user.getPassword(), user.getOldPasswords());
             User savedUser = userRepository.save(user);
             UserActivation userActivation = new UserActivation(savedUser);
             this.userActivationRepository.save(userActivation);
@@ -115,6 +120,7 @@ public class UserService implements IUserService {
 
             user.setRole(Role.USER);
             user.setLastPasswordResetDate(LocalDateTime.now().plusYears(1));
+            addPassword(user.getPassword(), user.getOldPasswords());
             User savedUser = userRepository.save(user);
             UserActivation userActivation = new UserActivation(savedUser);
             this.userActivationRepository.save(userActivation);
@@ -222,8 +228,13 @@ public class UserService implements IUserService {
             throw new Exception();
         }
 
-        user.getOldPasswords().add(user.getPassword());
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        if(isPasswordInList(request.getNewPassword(), user.getOldPasswords()) == true) {
+            throw new Exception();
+        }
+
+        String newPasswordEncoded = passwordEncoder.encode(request.getNewPassword());
+        user.setPassword(newPasswordEncoded);
+        addPassword(newPasswordEncoded, user.getOldPasswords());
         user.setResetPasswordToken(null);
         user.setResetPasswordTokenExpiration(null);
         this.userRepository.save(user);
@@ -233,11 +244,16 @@ public class UserService implements IUserService {
         User user = this.getUser(id).get();
 
         if (!request.getNewPassword().equals(request.getRepeateNewPassword())) {
-            throw new Exception();
+            throw new Exception("AAA");
         }
 
-        if (!request.getOldPassword().)) {
-            throw new Exception();
+        if (!request.getOldPassword().matches(user.getPassword())) {
+            throw new Exception("BBB");
+        }
+
+        System.out.println("ABECEDE");
+        if(isPasswordInList(request.getNewPassword(), user.getOldPasswords()) == true) {
+            throw new Exception("CCC");
         }
 
         user.getOldPasswords().add(user.getPassword());
@@ -245,7 +261,6 @@ public class UserService implements IUserService {
         user.setResetPasswordToken(null);
         user.setResetPasswordTokenExpiration(null);
         this.userRepository.save(user);
-    }
     }
 
     public boolean passwordExpired(User user) {
@@ -255,5 +270,21 @@ public class UserService implements IUserService {
             return currentDate.isAfter(passwordExpirationDate);
         }
         return false;
+    }
+
+    public boolean isPasswordInList(String encodedPassword, List<String> passwordList) {
+        for (String password : passwordList) {
+            if (passwordEncoder.matches(encodedPassword, password)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void addPassword(String encodedPassword, List<String> passwordList) {
+        if (passwordList.size() == MAX_PASSWORDS) {
+            passwordList.remove(0);
+        }
+        passwordList.add(encodedPassword);
     }
 }
