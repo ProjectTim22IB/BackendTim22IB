@@ -1,11 +1,10 @@
 package com.example.service;
 
-import com.example.dto.LoginDTO;
-import com.example.dto.RegistrationUserDTO;
-import com.example.dto.ResetPasswordDTO;
-import com.example.dto.TokensDTO;
+import com.example.dto.*;
 import com.example.enums.Role;
 import com.example.exceptions.EmailAlreadyExistException;
+import com.example.exceptions.NotAutentificatedException;
+import com.example.exceptions.PasswordExpiredException;
 import com.example.exceptions.UserNotFoundException;
 import com.example.mapper.RegistrationUserMapper;
 import com.example.model.User;
@@ -22,13 +21,10 @@ import org.bouncycastle.asn1.x500.style.BCStrictStyle;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -95,6 +91,7 @@ public class UserService implements IUserService {
             User user = RegistrationUserMapper.MAPPER.mapToUser(userDto);
 
             user.setRole(Role.USER);
+            user.setLastPasswordResetDate(LocalDateTime.now().plusYears(1));
             User savedUser = userRepository.save(user);
             UserActivation userActivation = new UserActivation(savedUser);
             this.userActivationRepository.save(userActivation);
@@ -117,6 +114,7 @@ public class UserService implements IUserService {
             User user = RegistrationUserMapper.MAPPER.mapToUser(userDto);
 
             user.setRole(Role.USER);
+            user.setLastPasswordResetDate(LocalDateTime.now().plusYears(1));
             User savedUser = userRepository.save(user);
             UserActivation userActivation = new UserActivation(savedUser);
             this.userActivationRepository.save(userActivation);
@@ -131,20 +129,41 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public User loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(username).get();
         if (user == null) {
             throw new UsernameNotFoundException(String.format("No user found with username '%s'.", username));
-        } else {
-            return user;
         }
+        if(passwordExpired(user)){
+            try {
+                throw new PasswordExpiredException("Your password is expired. Please, renew it.");
+            } catch (PasswordExpiredException e) {
+                e.getMessage();
+            }
+        }
+        return user;
     }
 
     @Override
-    public TokensDTO loginUser(LoginDTO login) throws Exception {
-        User user = getByEmail(login.getEmail()).get();
+    public User loadUserByEmail(String email) throws UsernameNotFoundException, PasswordExpiredException {
+
+        if(!this.userRepository.findByEmail(email).isPresent()){
+            throw new UsernameNotFoundException(String.format("No user found with email '%s'.", email));
+        }
+
+        User user = this.userRepository.findByEmail(email).get();
+        if (passwordExpired(user)) {
+            throw new PasswordExpiredException("Your password is expired. Please, renew it.");
+        }
+
+        return user;
+    }
+
+    @Override
+    public TokensDTO loginUser(LoginDTO login) throws NotAutentificatedException, PasswordExpiredException {
+        User user = loadUserByEmail(login.getEmail());
         if(!user.isAutentificated()){
-            throw new Exception();
+            throw new NotAutentificatedException("Not autentificated");
         }
         TokensDTO tokens = new TokensDTO();
         tokens.setAccessToken(this.tokenUtils.generateToken(user));
@@ -210,4 +229,31 @@ public class UserService implements IUserService {
         this.userRepository.save(user);
     }
 
+    public void changePassword(String id, ChangePasswordDTO request) throws Exception{
+        User user = this.getUser(id).get();
+
+        if (!request.getNewPassword().equals(request.getRepeateNewPassword())) {
+            throw new Exception();
+        }
+
+        if (!request.getOldPassword().)) {
+            throw new Exception();
+        }
+
+        user.getOldPasswords().add(user.getPassword());
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setResetPasswordToken(null);
+        user.setResetPasswordTokenExpiration(null);
+        this.userRepository.save(user);
+    }
+    }
+
+    public boolean passwordExpired(User user) {
+        LocalDateTime passwordExpirationDate = user.getLastPasswordResetDate();
+        if (passwordExpirationDate != null) {
+            LocalDateTime currentDate = LocalDateTime.now();
+            return currentDate.isAfter(passwordExpirationDate);
+        }
+        return false;
+    }
 }

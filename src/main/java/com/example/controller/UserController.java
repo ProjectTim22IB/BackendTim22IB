@@ -1,9 +1,6 @@
 package com.example.controller;
 
-import com.example.dto.LoginDTO;
-import com.example.dto.RegistrationUserDTO;
-import com.example.dto.RequestResetPasswordDTO;
-import com.example.dto.ResetPasswordDTO;
+import com.example.dto.*;
 import com.example.exceptions.*;
 import com.example.model.User;
 import com.example.rest.Message;
@@ -43,11 +40,11 @@ public class UserController {
         try {
             return new ResponseEntity<>(userService.createUserByEmail(request), HttpStatus.OK);
         } catch(EmailAlreadyExistException e){
-            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new Message(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         } catch (MessagingException e) {
-            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new Message(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         } catch (UnsupportedEncodingException e) {
-            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new Message(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -82,8 +79,14 @@ public class UserController {
     public ResponseEntity<?> login(@RequestBody LoginDTO login) {
         try{
             return new ResponseEntity<>(this.userService.loginUser(login), HttpStatus.OK);
-        } catch (Exception e){
-            return new ResponseEntity<>(new Message("Wrong username or password!"), HttpStatus.BAD_REQUEST);
+        }catch (UserNotFoundException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }catch (PasswordExpiredException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }catch (NotAutentificatedException e){
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -109,6 +112,18 @@ public class UserController {
 
     @PutMapping (value = "/{id}/resetPassword", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> changePasswordWithResetCode(@PathVariable("id") String id, @RequestBody ResetPasswordDTO request) {
+        try{
+            this.userService.changePasswordWithResetToken(id, request);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (MessagingException | UnsupportedEncodingException | UserNotFoundException e) {
+            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping (value = "/{id}/changePassword", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> changePassword(@PathVariable("id") String id, @RequestBody ChangePasswordDTO request) {
         try{
             this.userService.changePasswordWithResetToken(id, request);
             return new ResponseEntity<>(HttpStatus.OK);

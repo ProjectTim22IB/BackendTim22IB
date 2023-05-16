@@ -61,6 +61,9 @@ public class User implements UserDetails {
     @ElementCollection
     private List<String> oldPasswords;
 
+//    @Column(name = "LastPasswordResetDate)
+    private LocalDateTime lastPasswordResetDate;
+
     public Long getId() {
         return id;
     }
@@ -151,6 +154,14 @@ public class User implements UserDetails {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public LocalDateTime getLastPasswordResetDate() {
+        return lastPasswordResetDate;
+    }
+
+    public void setLastPasswordResetDate(LocalDateTime lastPasswordResetDate) {
+        this.lastPasswordResetDate = lastPasswordResetDate;
     }
 
     @JsonIgnore
