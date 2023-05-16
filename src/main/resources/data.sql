@@ -5,5 +5,5 @@ insert into users(name, surname, phone_number, email, password, autentificated, 
 
 --certificates
 insert into certificates(serial_number, valid_from, valid_to, status, certificate_type, email) values ('123', TIMESTAMP '2023-04-01 10:00:00', TIMESTAMP '2024-04-01 10:00:00', 'VALID', 'ROOT', 'jovana.jovanovic@gmail.com')
-insert into certificates(serial_number, issuer_serial_number, valid_from, valid_to, status, certificate_type, email) values ('2135', '123', TIMESTAMP '2023-04-03 10:00:00', TIMESTAMP '2023-10-03 10:00:00', 'VALID', 'INTERMEDIATE', 'pera.peric@gmail.com')
-insert into certificates(serial_number, issuer_serial_number, valid_from, valid_to, status, certificate_type, email) values ('548', '2135', TIMESTAMP '2023-04-04 10:00:00', TIMESTAMP '2023-07-04 10:00:00', 'VALID', 'END', 'marko.markovic@gmail.com')
+-- insert into certificates(serial_number, issuer_serial_number, valid_from, valid_to, status, certificate_type, email) values ('2135', '123', TIMESTAMP '2023-04-03 10:00:00', TIMESTAMP '2023-10-03 10:00:00', 'VALID', 'INTERMEDIATE', 'pera.peric@gmail.com')
+-- insert into certificates(serial_number, issuer_serial_number, valid_from, valid_to, status, certificate_type, email) values ('548', '2135', TIMESTAMP '2023-04-04 10:00:00', TIMESTAMP '2023-07-04 10:00:00', 'VALID', 'END', 'marko.markovic@gmail.com')
