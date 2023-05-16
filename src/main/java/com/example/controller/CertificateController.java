@@ -12,6 +12,7 @@ import com.example.service.interfaces.ICertificateService;
 import com.example.service.interfaces.IUserService;
 import com.example.utils.KeyStoreUtils;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.hibernate.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -96,6 +97,7 @@ public class CertificateController {
         }
         try {
             KeyStore keyStore = this.keyStoreUtils.loadKeyStore();
+//            this.certificateService.loadExistingCertificates();
 
             X509Certificate certificate = (X509Certificate) keyStore.getCertificate(serialNumber);
 
@@ -135,6 +137,13 @@ public class CertificateController {
             e.printStackTrace();
             return new ResponseEntity<>(new Message("Failed to parse certificate."), HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @PostMapping("/addtoKeystore")
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity<?> addtoKeystore() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException, NoSuchProviderException, OperatorCreationException {
+        this.certificateService.loadExistingCertificates();
+        return new ResponseEntity<>(new Message("Successfully added root to keystore!"), HttpStatus.OK);
     }
 
 }
