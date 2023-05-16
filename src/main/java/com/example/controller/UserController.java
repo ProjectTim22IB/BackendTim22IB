@@ -2,34 +2,78 @@ package com.example.controller;
 
 import com.example.dto.LoginDTO;
 import com.example.dto.RegistrationUserDTO;
-import com.example.exceptions.EmailAlreadyExistException;
+import com.example.dto.RequestResetPasswordDTO;
+import com.example.dto.ResetPasswordDTO;
+import com.example.exceptions.*;
+import com.example.model.User;
 import com.example.rest.Message;
+import com.example.service.TwilioService;
+import com.example.service.interfaces.ITwilioService;
+import com.example.service.interfaces.IUserActivationService;
 import com.example.service.interfaces.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import javax.mail.MessagingException;
+import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
+import java.util.Random;
 
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
 
     private final IUserService userService;
+    private final IUserActivationService userActivationService;
+    private final ITwilioService twilioService;
 
     @Autowired
-    public UserController(IUserService userService) {
+    public UserController(IUserService userService, IUserActivationService iUserActivationService, ITwilioService twilioService) {
         this.userService = userService;
+        this.userActivationService = iUserActivationService;
+        this.twilioService = twilioService;
     }
 
-    @PostMapping(value = "/registration", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> registration(@RequestBody RegistrationUserDTO request) {
+    @PostMapping(value = "/registrationByEmail", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> registrationByEmail(@RequestBody RegistrationUserDTO request) {
         try {
-            return new ResponseEntity<>(userService.createUser(request), HttpStatus.OK);
+            return new ResponseEntity<>(userService.createUserByEmail(request), HttpStatus.OK);
         } catch(EmailAlreadyExistException e){
+            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (MessagingException e) {
+            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (UnsupportedEncodingException e) {
+            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping(value = "/registrationBySMS", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> registrationBySMS(@RequestBody RegistrationUserDTO request) {
+        try {
+            return new ResponseEntity<>(userService.createUserBySMS(request), HttpStatus.OK);
+        } catch(EmailAlreadyExistException e){
+            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (MessagingException e) {
+            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (UnsupportedEncodingException e) {
+            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping(value = "/activate/{id}")
+    public ResponseEntity<?> activate(@PathVariable("id") String id) {
+        try{
+            userActivationService.activate(id);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (ActivationExpiredException e) {
+            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (InvalidUserActivation e) {
+            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (UserAlreadyAutentificatedException e) {
             return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
         }
     }
@@ -43,5 +87,35 @@ public class UserController {
         }
     }
 
-    
+    @PutMapping(value = "/resetPasswordByEmail", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> resetPasswordByEmail(@RequestBody RequestResetPasswordDTO request) {
+        try{
+            this.userService.resetPasswordByEmail(request.getResetEmailOrSMS());
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (MessagingException | UnsupportedEncodingException | UserNotFoundException e) {
+            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping(value = "/resetPasswordBySMS", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> resetPasswordBySMS(@RequestBody RequestResetPasswordDTO request) {
+        try{
+            this.userService.resetPasswordBySMS(request.getResetEmailOrSMS());
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (MessagingException | UnsupportedEncodingException | UserNotFoundException e) {
+            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping (value = "/{id}/resetPassword", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> changePasswordWithResetCode(@PathVariable("id") String id, @RequestBody ResetPasswordDTO request) {
+        try{
+            this.userService.changePasswordWithResetToken(id, request);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (MessagingException | UnsupportedEncodingException | UserNotFoundException e) {
+            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
+    }
 }

@@ -41,9 +41,6 @@ public class User implements UserDetails {
 //    @Column(name = "Password")
     private String password;
 
-//    @Column(name = "ConfromationToken")
-    private String conformationToken;
-
 //    @Column(name = "Autentificated")
     private boolean autentificated;
 
@@ -61,8 +58,8 @@ public class User implements UserDetails {
     private Role role;
 
 //    @Column(name = "OldPasswords")
-//    @ElementCollection
-//    private List<String> oldPasswords;
+    @ElementCollection
+    private List<String> oldPasswords;
 
     public Long getId() {
         return id;
@@ -108,14 +105,6 @@ public class User implements UserDetails {
         this.password = password;
     }
 
-    public String getConformationToken() {
-        return conformationToken;
-    }
-
-    public void setConformationToken(String conformationToken) {
-        this.conformationToken = conformationToken;
-    }
-
     public boolean isAutentificated() {
         return autentificated;
     }
@@ -148,13 +137,13 @@ public class User implements UserDetails {
         this.passwordExpiration = passwordExpiration;
     }
 
-//    public List<String> getOldPasswords() {
-//        return oldPasswords;
-//    }
-//
-//    public void setOldPasswords(List<String> oldPasswords) {
-//        this.oldPasswords = oldPasswords;
-//    }
+    public List<String> getOldPasswords() {
+        return oldPasswords;
+    }
+
+    public void setOldPasswords(List<String> oldPasswords) {
+        this.oldPasswords = oldPasswords;
+    }
 
     public Role getRole() {
         return role;
