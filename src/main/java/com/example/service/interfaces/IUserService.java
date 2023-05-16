@@ -1,6 +1,7 @@
 package com.example.service.interfaces;
 
 import com.example.dto.*;
+import com.example.enums.AutentificationType;
 import com.example.exceptions.EmailAlreadyExistException;
 import com.example.exceptions.PasswordExpiredException;
 import com.example.exceptions.UserNotFoundException;
@@ -16,11 +17,15 @@ import java.util.Optional;
 
 public interface IUserService extends UserDetailsService {
 
+    String generateToken();
+
     Optional<User> getUser(String id);
 
     Optional<User> getByEmail(String email);
 
     Optional<User> getByPhoneNumber(String phoneNumber);
+
+    User createUser(RegistrationUserDTO userDto, AutentificationType type);
 
     User createUserByEmail(RegistrationUserDTO userDto) throws EmailAlreadyExistException, MessagingException, UnsupportedEncodingException;
 
@@ -35,8 +40,6 @@ public interface IUserService extends UserDetailsService {
     TokensDTO loginUser(LoginDTO login) throws Exception;
 
     void changePasswordWithResetToken(String id, ResetPasswordDTO request) throws Exception;
-
-    void changePassword(String id, ChangePasswordDTO request) throws Exception;
 
     X500Name generateX500Name(User user);
 

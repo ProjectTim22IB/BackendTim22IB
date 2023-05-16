@@ -13,12 +13,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
 import javax.mail.MessagingException;
 import java.io.UnsupportedEncodingException;
-import java.time.LocalDateTime;
-import java.util.Random;
 
 @RestController
 @RequestMapping("/api/user")
@@ -122,15 +120,13 @@ public class UserController {
         }
     }
 
-//    @PutMapping (value = "/{id}/changePassword", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity<?> changePassword(@PathVariable("id") String id, @RequestBody ChangePasswordDTO request) {
-//        try{
-//            this.userService.changePasswordWithResetToken(id, request);
-//            return new ResponseEntity<>(HttpStatus.OK);
-//        } catch (MessagingException | UnsupportedEncodingException | UserNotFoundException e) {
-//            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(new Message(e.getMessage()), HttpStatus.BAD_REQUEST);
-//        }
-//    }
+    @PutMapping (value = "/twoFactorAutentification", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('USER')")
+    public ResponseEntity<?> twoFactorAutentification(@RequestBody TwoFactorAuthDTO request) {
+
+            String passengerId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId().toString();
+            return new ResponseEntity<>(passengerId, HttpStatus.OK);
+
+
+    }
 }

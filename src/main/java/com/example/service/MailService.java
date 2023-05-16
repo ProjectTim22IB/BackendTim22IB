@@ -46,6 +46,26 @@ public class MailService implements IMailService {
     }
 
     @Override
+    public void sendTwoFactorAuthMail(String recipientEmail, String token) throws MessagingException, UnsupportedEncodingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message);
+
+        helper.setFrom("fabcar.project@gmail.com", "FAB CAR");
+        helper.setTo(recipientEmail);
+
+        String subject = "2Factor token";
+
+        String content = "<p>Pozdrav,</p>"
+                + "<p>Onesite ovaj token za two factor autentifikaciju.</p>"
+                + token + "<br>";
+
+        helper.setSubject(subject);
+        helper.setText(content, true);
+
+        mailSender.send(message);
+    }
+
+    @Override
     public void sendActivationEmail(String recipientEmail, UserActivation activation) throws MessagingException,UnsupportedEncodingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message);

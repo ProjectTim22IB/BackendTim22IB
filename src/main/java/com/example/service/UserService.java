@@ -1,6 +1,7 @@
 package com.example.service;
 
 import com.example.dto.*;
+import com.example.enums.AutentificationType;
 import com.example.enums.Role;
 import com.example.exceptions.EmailAlreadyExistException;
 import com.example.exceptions.NotAutentificatedException;
@@ -32,14 +33,12 @@ import org.springframework.stereotype.Service;
 import javax.mail.MessagingException;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
 @Service
 public class UserService implements IUserService {
-
 
     private static final int MAX_PASSWORDS = 4;
     private UserRepository userRepository;
@@ -72,6 +71,11 @@ public class UserService implements IUserService {
     }
 
     @Override
+    public String generateToken(){
+        return String.valueOf(new Random().nextInt(900000) + 100000);
+    }
+
+    @Override
     public Optional<User> getUser(String id) {
         return  this.userRepository.findById(Long.parseLong(id));
     }
@@ -87,25 +91,40 @@ public class UserService implements IUserService {
     }
 
     @Override
+    public User createUser(RegistrationUserDTO userDto, AutentificationType type) {
+
+        userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        User user = RegistrationUserMapper.MAPPER.mapToUser(userDto);
+
+        user.setRole(Role.USER);
+        user.setAutentificationType(type);
+        user.setLastPasswordResetDate(LocalDateTime.now().plusYears(1));
+        addPassword(user.getPassword(), user.getOldPasswords());
+        User savedUser = userRepository.save(user);
+
+        return savedUser;
+    }
+
+    public UserActivation createUserActivation(User user) {
+
+        UserActivation userActivation = new UserActivation(user);
+        this.userActivationRepository.save(userActivation);
+
+        return userActivation;
+    }
+
+    @Override
     public User createUserByEmail(RegistrationUserDTO userDto) throws EmailAlreadyExistException, MessagingException, UnsupportedEncodingException {
 
         if(!userRepository.findByEmail(userDto.getEmail()).isPresent() && !userRepository.findByPhoneNumber(userDto.getPhoneNumber()).isPresent()){
 
-            userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
-            User user = RegistrationUserMapper.MAPPER.mapToUser(userDto);
-
-            user.setRole(Role.USER);
-            user.setLastPasswordResetDate(LocalDateTime.now().plusYears(1));
-            addPassword(user.getPassword(), user.getOldPasswords());
-            User savedUser = userRepository.save(user);
-            UserActivation userActivation = new UserActivation(savedUser);
-            this.userActivationRepository.save(userActivation);
-
+            User user = createUser(userDto, AutentificationType.EMAIL);
+            UserActivation userActivation = createUserActivation(user);
             mailService.sendActivationEmail("filipvuksan.iphone@gmail.com", userActivation);
 
-            return savedUser;
-
-        }else {
+            return user;
+        }
+        else {
             throw new EmailAlreadyExistException("User already exist");
         }
     }
@@ -115,21 +134,13 @@ public class UserService implements IUserService {
 
         if(!userRepository.findByEmail(userDto.getEmail()).isPresent() && !userRepository.findByPhoneNumber(userDto.getPhoneNumber()).isPresent()){
 
-            userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
-            User user = RegistrationUserMapper.MAPPER.mapToUser(userDto);
-
-            user.setRole(Role.USER);
-            user.setLastPasswordResetDate(LocalDateTime.now().plusYears(1));
-            addPassword(user.getPassword(), user.getOldPasswords());
-            User savedUser = userRepository.save(user);
-            UserActivation userActivation = new UserActivation(savedUser);
-            this.userActivationRepository.save(userActivation);
-
+            User user = createUser(userDto, AutentificationType.EMAIL);
+            UserActivation userActivation = createUserActivation(user);
             twilioService.sendActivationSMS(userDto.getPhoneNumber(), userActivation);
 
-            return savedUser;
-
-        }else {
+            return user;
+        }
+        else {
             throw new EmailAlreadyExistException("User already exist");
         }
     }
@@ -161,23 +172,72 @@ public class UserService implements IUserService {
         if (passwordExpired(user)) {
             throw new PasswordExpiredException("Your password is expired. Please, renew it.");
         }
-
         return user;
     }
 
     @Override
-    public TokensDTO loginUser(LoginDTO login) throws NotAutentificatedException, PasswordExpiredException {
+    public TokensDTO loginUser(LoginDTO login) throws NotAutentificatedException, PasswordExpiredException, UserNotFoundException, MessagingException, UnsupportedEncodingException {
+
         User user = loadUserByEmail(login.getEmail());
+
         if(!user.isAutentificated()){
             throw new NotAutentificatedException("Not autentificated");
         }
+
         TokensDTO tokens = new TokensDTO();
         tokens.setAccessToken(this.tokenUtils.generateToken(user));
         tokens.setRefreshToken(this.tokenUtils.generateRefreshToken(user));
         Authentication authentication = this.authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(login.getEmail(), login.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
+        if(user.getAutentificationType() == AutentificationType.EMAIL){
+            sendTwoFactorAuthToken(user.getEmail(), AutentificationType.EMAIL);
+        }
+
+        if(user.getAutentificationType() == AutentificationType.NUMBER){
+            sendTwoFactorAuthToken(user.getEmail(), AutentificationType.NUMBER);
+        }
+
         return tokens;
+    }
+
+    public void sendTwoFactorAuthToken(String emailOrNumber, AutentificationType type) throws UserNotFoundException, MessagingException, UnsupportedEncodingException {
+
+        if(type == AutentificationType.EMAIL){
+            sendTwoFactorAuthTokenEmail(emailOrNumber);
+        }
+
+        if(type == AutentificationType.NUMBER){
+            sendTwoFactorAuthTokenNumber(emailOrNumber);
+        }
+    }
+
+    public void sendTwoFactorAuthTokenEmail(String emailOrNumber) throws UserNotFoundException, MessagingException, UnsupportedEncodingException {
+
+        if(!this.userRepository.findByEmail(emailOrNumber).isPresent()){
+            throw new UserNotFoundException("User not found");
+        }
+
+        User user = this.getByEmail(emailOrNumber).get();
+        String token = generateToken();
+        user.setTwoFactorAuthToken(token);
+        user.setTwoFactorAuthTokenExpiration(LocalDateTime.now().plusMinutes(1));
+
+        mailService.sendTwoFactorAuthMail("filipvuksan.iphone@gmail.com", token);
+        this.userRepository.save(user);
+    }
+
+    public void sendTwoFactorAuthTokenNumber(String emailOrNumber) throws UserNotFoundException, MessagingException, UnsupportedEncodingException {
+        if(!this.userRepository.findByPhoneNumber(emailOrNumber).isPresent()){
+            throw new UserNotFoundException("User not found");
+        }
+        User user = this.getByPhoneNumber(emailOrNumber).get();
+        String token = generateToken();
+        user.setResetPasswordToken(token);
+        user.setResetPasswordTokenExpiration(LocalDateTime.now().plusMinutes(10));
+
+        twilioService.sendResetPasswordCode(emailOrNumber, token);
+        this.userRepository.save(user);
     }
 
     @Override
@@ -190,26 +250,31 @@ public class UserService implements IUserService {
         return builder.build();
     }
 
+    @Override
     public void resetPasswordByEmail(String email) throws UserNotFoundException, MessagingException, UnsupportedEncodingException {
-            if(!this.userRepository.findByEmail(email).isPresent()){
-                throw new UserNotFoundException("User not found");
-            }
-            User user = this.getByEmail(email).get();
-            String token = String.valueOf(new Random().nextInt(900000) + 100000);
-            user.setResetPasswordToken(token);
-            user.setResetPasswordTokenExpiration(LocalDateTime.now().plusMinutes(10));
 
-            mailService.sendMail("filipvuksan.iphone@gmail.com", token);
-            this.userRepository.save(user);
+        if(!this.userRepository.findByEmail(email).isPresent()){
+            throw new UserNotFoundException("User not found");
+        }
+
+        User user = this.getByEmail(email).get();
+        String token = generateToken();
+        user.setResetPasswordToken(token);
+        user.setResetPasswordTokenExpiration(LocalDateTime.now().plusMinutes(10));
+
+        mailService.sendMail("filipvuksan.iphone@gmail.com", token);
+        this.userRepository.save(user);
     }
 
     @Override
     public void resetPasswordBySMS(String toPhoneNumber) throws UserNotFoundException {
+
         if(!this.userRepository.findByPhoneNumber(toPhoneNumber).isPresent()){
             throw new UserNotFoundException("User not found");
         }
+
         User user = this.getByPhoneNumber(toPhoneNumber).get();
-        String token = String.valueOf(new Random().nextInt(900000) + 100000);
+        String token = generateToken();
         user.setResetPasswordToken(token);
         user.setResetPasswordTokenExpiration(LocalDateTime.now().plusMinutes(10));
 
@@ -218,6 +283,7 @@ public class UserService implements IUserService {
     }
 
     public void changePasswordWithResetToken(String id, ResetPasswordDTO request) throws Exception {
+
         User user = this.getUser(id).get();
 
         if (!request.getNewPassword().equals(request.getRepeateNewPassword())) {
@@ -235,29 +301,6 @@ public class UserService implements IUserService {
         String newPasswordEncoded = passwordEncoder.encode(request.getNewPassword());
         user.setPassword(newPasswordEncoded);
         addPassword(newPasswordEncoded, user.getOldPasswords());
-        user.setResetPasswordToken(null);
-        user.setResetPasswordTokenExpiration(null);
-        this.userRepository.save(user);
-    }
-
-    public void changePassword(String id, ChangePasswordDTO request) throws Exception{
-        User user = this.getUser(id).get();
-
-        if (!request.getNewPassword().equals(request.getRepeateNewPassword())) {
-            throw new Exception("AAA");
-        }
-
-        if (!request.getOldPassword().matches(user.getPassword())) {
-            throw new Exception("BBB");
-        }
-
-        System.out.println("ABECEDE");
-        if(isPasswordInList(request.getNewPassword(), user.getOldPasswords()) == true) {
-            throw new Exception("CCC");
-        }
-
-        user.getOldPasswords().add(user.getPassword());
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setResetPasswordToken(null);
         user.setResetPasswordTokenExpiration(null);
         this.userRepository.save(user);

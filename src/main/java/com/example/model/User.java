@@ -1,5 +1,6 @@
 package com.example.model;
 
+import com.example.enums.AutentificationType;
 import com.example.enums.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
@@ -61,8 +62,20 @@ public class User implements UserDetails {
     @ElementCollection
     private List<String> oldPasswords = new ArrayList<>();
 
-//    @Column(name = "LastPasswordResetDate)
+//    @Column(name = "LastPasswordResetDate")
     private LocalDateTime lastPasswordResetDate;
+
+//    @Column(name = "AutentificationType")
+    private AutentificationType autentificationType;
+
+//    @Column(name = "TwoFactorAuth")
+    private boolean twoFactorAuth;
+
+//    @Column(name = "TwoFactorAuthToken")
+    private String twoFactorAuthToken;
+
+//    @Column(name = "TwoFactorAuthTokenExpiration")
+    private LocalDateTime twoFactorAuthTokenExpiration;
 
     public Long getId() {
         return id;
@@ -162,6 +175,38 @@ public class User implements UserDetails {
 
     public void setLastPasswordResetDate(LocalDateTime lastPasswordResetDate) {
         this.lastPasswordResetDate = lastPasswordResetDate;
+    }
+
+    public AutentificationType getAutentificationType() {
+        return autentificationType;
+    }
+
+    public void setAutentificationType(AutentificationType autentificationType) {
+        this.autentificationType = autentificationType;
+    }
+
+    public boolean isTwoFactorAuth() {
+        return twoFactorAuth;
+    }
+
+    public void setTwoFactorAuth(boolean twoFactorAuth) {
+        this.twoFactorAuth = twoFactorAuth;
+    }
+
+    public String getTwoFactorAuthToken() {
+        return twoFactorAuthToken;
+    }
+
+    public void setTwoFactorAuthToken(String twoFactorAuthToken) {
+        this.twoFactorAuthToken = twoFactorAuthToken;
+    }
+
+    public LocalDateTime getTwoFactorAuthTokenExpiration() {
+        return twoFactorAuthTokenExpiration;
+    }
+
+    public void setTwoFactorAuthTokenExpiration(LocalDateTime twoFactorAuthTokenExpiration) {
+        this.twoFactorAuthTokenExpiration = twoFactorAuthTokenExpiration;
     }
 
     @JsonIgnore
