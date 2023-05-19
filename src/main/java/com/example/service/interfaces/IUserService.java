@@ -2,9 +2,7 @@ package com.example.service.interfaces;
 
 import com.example.dto.*;
 import com.example.enums.AutentificationType;
-import com.example.exceptions.EmailAlreadyExistException;
-import com.example.exceptions.PasswordExpiredException;
-import com.example.exceptions.UserNotFoundException;
+import com.example.exceptions.*;
 import com.example.model.User;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,11 +11,14 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import javax.mail.MessagingException;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.Optional;
 
 public interface IUserService extends UserDetailsService {
 
     String generateToken();
+
+    List<User> getAll();
 
     Optional<User> getUser(String id);
 
@@ -44,4 +45,6 @@ public interface IUserService extends UserDetailsService {
     X500Name generateX500Name(User user);
 
     User loadUserByUsername(String username) throws UsernameNotFoundException;
+
+    void checkTwoFactorAuth(User user, String auth) throws InvalidTwoFactorAuthTokenException, TwoFactorAuthExpiredException;
 }

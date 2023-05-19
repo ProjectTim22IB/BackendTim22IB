@@ -3,10 +3,7 @@ package com.example.service;
 import com.example.dto.*;
 import com.example.enums.AutentificationType;
 import com.example.enums.Role;
-import com.example.exceptions.EmailAlreadyExistException;
-import com.example.exceptions.NotAutentificatedException;
-import com.example.exceptions.PasswordExpiredException;
-import com.example.exceptions.UserNotFoundException;
+import com.example.exceptions.*;
 import com.example.mapper.RegistrationUserMapper;
 import com.example.model.User;
 import com.example.model.UserActivation;
@@ -76,6 +73,11 @@ public class UserService implements IUserService {
     }
 
     @Override
+    public List<User> getAll(){
+        return this.userRepository.findAll();
+    }
+
+    @Override
     public Optional<User> getUser(String id) {
         return  this.userRepository.findById(Long.parseLong(id));
     }
@@ -134,7 +136,7 @@ public class UserService implements IUserService {
 
         if(!userRepository.findByEmail(userDto.getEmail()).isPresent() && !userRepository.findByPhoneNumber(userDto.getPhoneNumber()).isPresent()){
 
-            User user = createUser(userDto, AutentificationType.EMAIL);
+            User user = createUser(userDto, AutentificationType.NUMBER);
             UserActivation userActivation = createUserActivation(user);
             twilioService.sendActivationSMS(userDto.getPhoneNumber(), userActivation);
 
@@ -179,6 +181,7 @@ public class UserService implements IUserService {
     public TokensDTO loginUser(LoginDTO login) throws NotAutentificatedException, PasswordExpiredException, UserNotFoundException, MessagingException, UnsupportedEncodingException {
 
         User user = loadUserByEmail(login.getEmail());
+        System.out.println(user.getEmail());
 
         if(!user.isAutentificated()){
             throw new NotAutentificatedException("Not autentificated");
@@ -195,7 +198,7 @@ public class UserService implements IUserService {
         }
 
         if(user.getAutentificationType() == AutentificationType.NUMBER){
-            sendTwoFactorAuthToken(user.getEmail(), AutentificationType.NUMBER);
+            sendTwoFactorAuthToken(user.getPhoneNumber(), AutentificationType.NUMBER);
         }
 
         return tokens;
@@ -222,9 +225,9 @@ public class UserService implements IUserService {
         String token = generateToken();
         user.setTwoFactorAuthToken(token);
         user.setTwoFactorAuthTokenExpiration(LocalDateTime.now().plusMinutes(1));
+        this.userRepository.save(user);
 
         mailService.sendTwoFactorAuthMail("filipvuksan.iphone@gmail.com", token);
-        this.userRepository.save(user);
     }
 
     public void sendTwoFactorAuthTokenNumber(String emailOrNumber) throws UserNotFoundException, MessagingException, UnsupportedEncodingException {
@@ -233,11 +236,11 @@ public class UserService implements IUserService {
         }
         User user = this.getByPhoneNumber(emailOrNumber).get();
         String token = generateToken();
-        user.setResetPasswordToken(token);
-        user.setResetPasswordTokenExpiration(LocalDateTime.now().plusMinutes(10));
+        user.setTwoFactorAuthToken(token);
+        user.setTwoFactorAuthTokenExpiration(LocalDateTime.now().plusMinutes(10));
+        this.userRepository.save(user);
 
         twilioService.sendResetPasswordCode(emailOrNumber, token);
-        this.userRepository.save(user);
     }
 
     @Override
@@ -329,5 +332,26 @@ public class UserService implements IUserService {
             passwordList.remove(0);
         }
         passwordList.add(encodedPassword);
+    }
+
+    @Override
+    public void checkTwoFactorAuth(User user, String auth) throws InvalidTwoFactorAuthTokenException, TwoFactorAuthExpiredException {
+        String userAuthToken = user.getTwoFactorAuthToken();
+        String authtoken = auth;
+
+        if (!userAuthToken.equals(authtoken)){
+            throw new InvalidTwoFactorAuthTokenException("Invalid Auth Token");
+        }
+
+        if (user.getTwoFactorAuthTokenExpiration().isBefore(LocalDateTime.now())){
+            throw new TwoFactorAuthExpiredException("Token expired");
+        }
+        else{
+            user.setTwoFactorAuth(true);
+            user.setTwoFactorAuthToken(null);
+            user.setTwoFactorAuthTokenExpiration(null);
+            user.setTwoFactorAuthTokenSession(LocalDateTime.now().plusMinutes(1));
+            this.userRepository.save(user);
+        }
     }
 }

@@ -33,6 +33,11 @@ public class UserController {
         this.twilioService = twilioService;
     }
 
+    @GetMapping(value = "/users")
+    public ResponseEntity<?> getUsers(){
+        return new ResponseEntity<>(userService.getAll(), HttpStatus.OK);
+    }
+
     @PostMapping(value = "/registrationByEmail", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> registrationByEmail(@RequestBody RegistrationUserDTO request) {
         try {
@@ -124,9 +129,14 @@ public class UserController {
     @PreAuthorize("hasAnyAuthority('USER')")
     public ResponseEntity<?> twoFactorAutentification(@RequestBody TwoFactorAuthDTO request) {
 
-            String passengerId = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId().toString();
-            return new ResponseEntity<>(passengerId, HttpStatus.OK);
-
-
+        try {
+            User user = ((User) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+            this.userService.checkTwoFactorAuth(user, request.getTwoFactorAuthToken());
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (InvalidTwoFactorAuthTokenException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (TwoFactorAuthExpiredException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 }

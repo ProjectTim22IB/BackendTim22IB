@@ -14,7 +14,7 @@ public class TwilioService implements ITwilioService {
                     + "<p>Aktivaciju naloga možete obaviti klikom na sledeći link:</p>";
 
     public static final String ACCOUNT_SID = "AC019f343b932c807b4384d3c978abb1f2";
-    public static final String AUTH_TOKEN = "f679cc6731980cce5c4121039159c99c";
+    public static final String AUTH_TOKEN = "8a68a393cd36c7764fdfba1f060479ad";
     public static final String FROM_PHONE_NUMBER = "whatsapp:+14155238886";
     public static final String TO_PHONE_NUMBER = "whatsapp:+381665423903";
 

@@ -77,6 +77,9 @@ public class User implements UserDetails {
 //    @Column(name = "TwoFactorAuthTokenExpiration")
     private LocalDateTime twoFactorAuthTokenExpiration;
 
+//    @Column(name = "TwoFactorAuthTokenExpiration")
+    private LocalDateTime twoFactorAuthTokenSession;
+
     public Long getId() {
         return id;
     }
@@ -207,6 +210,14 @@ public class User implements UserDetails {
 
     public void setTwoFactorAuthTokenExpiration(LocalDateTime twoFactorAuthTokenExpiration) {
         this.twoFactorAuthTokenExpiration = twoFactorAuthTokenExpiration;
+    }
+
+    public LocalDateTime getTwoFactorAuthTokenSession() {
+        return twoFactorAuthTokenSession;
+    }
+
+    public void setTwoFactorAuthTokenSession(LocalDateTime twoFactorAuthTokenSession) {
+        this.twoFactorAuthTokenSession = twoFactorAuthTokenSession;
     }
 
     @JsonIgnore
