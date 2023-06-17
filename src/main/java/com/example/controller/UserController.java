@@ -4,7 +4,6 @@ import com.example.dto.*;
 import com.example.exceptions.*;
 import com.example.model.User;
 import com.example.rest.Message;
-import com.example.service.TwilioService;
 import com.example.service.interfaces.ITwilioService;
 import com.example.service.interfaces.IUserActivationService;
 import com.example.service.interfaces.IUserService;
