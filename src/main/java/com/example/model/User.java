@@ -23,61 +23,43 @@ import java.util.List;
 public class User implements UserDetails {
 
     @Id
-//    @Column(name = "Id")
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
 
-//    @Column(name = "Name")
     private String name;
 
-//    @Column(name = "Surname")
     private String surname;
 
-//    @Column(name = "PhoneNumber")
     private String phoneNumber;
 
-//    @Column(name = "Email")
     private String email;
 
-//    @Column(name = "Password")
     private String password;
 
-//    @Column(name = "Autentificated")
     private boolean autentificated;
 
-//    @Column(name = "ResetPasswordToken")
     private String resetPasswordToken;
 
-//    @Column(name = "ResetPasswordTokenExpiration")
     private LocalDateTime resetPasswordTokenExpiration;
 
-//    @Column(name = "PasswordExpiration")
     private LocalDateTime passwordExpiration;
 
-//    @Column(name = "Role")
     @Enumerated(EnumType.STRING)
     private Role role;
 
-//    @Column(name = "OldPasswords")
     @ElementCollection
     private List<String> oldPasswords = new ArrayList<>();
 
-//    @Column(name = "LastPasswordResetDate")
     private LocalDateTime lastPasswordResetDate;
 
-//    @Column(name = "AutentificationType")
     private AutentificationType autentificationType;
 
-//    @Column(name = "TwoFactorAuth")
     private boolean twoFactorAuth;
 
-//    @Column(name = "TwoFactorAuthToken")
     private String twoFactorAuthToken;
 
-//    @Column(name = "TwoFactorAuthTokenExpiration")
     private LocalDateTime twoFactorAuthTokenExpiration;
 
-//    @Column(name = "TwoFactorAuthTokenExpiration")
     private LocalDateTime twoFactorAuthTokenSession;
 
     public Long getId() {
